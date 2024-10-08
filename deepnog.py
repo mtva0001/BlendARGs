@@ -91,11 +91,6 @@ def process_folder(folder_path):
                 command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99"
                 subprocess.run(command, shell=True, check=True)
 
-                # Convert only the _prediction.txt files
-                txt_output_file = output_file_path + ".txt"
-                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
-                    convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
-
             except subprocess.CalledProcessError as e:
                 logging.error(f"Error processing donor file {cleaned_file_path}: {e}")
 
@@ -112,30 +107,9 @@ def process_folder(folder_path):
                 command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99"
                 subprocess.run(command, shell=True, check=True)
 
-                # Convert only the _prediction.txt files
-                txt_output_file = output_file_path + ".txt"
-                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
-                    convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
-
             except subprocess.CalledProcessError as e:
                 logging.error(f"Error processing recipient file {cleaned_file_path}: {e}")
 
-
-def convert_txt_to_csv(txt_file, csv_file):
-    """
-    Converts a tab-separated .txt file to a comma-separated .csv file.
-    Only processes files ending with '_prediction.txt'.
-    """
-    try:
-        with open(txt_file, 'r') as infile, open(csv_file, 'w', newline='') as outfile:
-            reader = csv.reader(infile, delimiter='\t')
-            writer = csv.writer(outfile, delimiter=',')
-            for row in reader:
-                writer.writerow(row)
-        logging.info(f"Converted {txt_file} to {csv_file}")
-
-    except Exception as e:
-        logging.error(f"Error converting {txt_file} to CSV: {e}")
 
 
 def main():
@@ -160,7 +134,7 @@ for root, dirs, files in os.walk(folder_path):
     for file in files:
         if file.endswith('_prediction.csv'):
             file_path = os.path.join(root, file)
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, header=None, names=['ID', 'COG_ID', 'Value', 'Group', 'Category'])
             dfs.append(df)
 
 # Concatenate all DataFrames into a single DataFrame
