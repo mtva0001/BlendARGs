@@ -88,7 +88,7 @@ def process_folder(folder_path):
             try:
                 output_file_name = file_name.replace(donor_suffix, '_donor_prediction')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99"
+                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99 -nw 32"
                 subprocess.run(command, shell=True, check=True)
 
             except subprocess.CalledProcessError as e:
@@ -104,7 +104,7 @@ def process_folder(folder_path):
             try:
                 output_file_name = file_name.replace(recipient_suffix, '_recipient_prediction')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99"
+                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99 -nw 32"
                 subprocess.run(command, shell=True, check=True)
 
             except subprocess.CalledProcessError as e:
