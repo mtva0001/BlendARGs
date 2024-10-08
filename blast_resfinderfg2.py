@@ -88,12 +88,12 @@ def process_folder(folder_path):
             try:
                 output_file_name = file_name.replace(donor_suffix, '_donor_prediction')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"blastp -query {cleaned_file_path} -o {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt 10 -max_target_seqs 1"
+                command = f"blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt 10 -max_target_seqs 1"
                 subprocess.run(command, shell=True, check=True)
 
                 # Convert only the _prediction.txt files
-                txt_output_file = output_file_path + ".txt"
-                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
+                txt_output_file = output_file_path
+                if txt_output_file.endswith('_prediction') and os.path.exists(txt_output_file):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
@@ -109,12 +109,12 @@ def process_folder(folder_path):
             try:
                 output_file_name = file_name.replace(recipient_suffix, '_recipient_prediction')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"blastp -query {cleaned_file_path} -o {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt 10 -max_target_seqs 1"
+                command = f"blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt 10 -max_target_seqs 1"
                 subprocess.run(command, shell=True, check=True)
 
                 # Convert only the _prediction.txt files
-                txt_output_file = output_file_path + ".txt"
-                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
+                txt_output_file = output_file_path
+                if txt_output_file.endswith('_prediction') and os.path.exists(txt_output_file):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
