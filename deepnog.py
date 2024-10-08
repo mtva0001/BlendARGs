@@ -174,7 +174,7 @@ print(f"Summary CSV file saved to {output_file_path}")
 
 
 #Create gene list
-source_dir = 'RGI'
+source_dir = 'DeepNOG'
 
 gene_list = []
 
