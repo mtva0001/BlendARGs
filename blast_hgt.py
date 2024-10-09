@@ -58,7 +58,7 @@ logging.info(f"\nSummary: In {count_hgt_folders} out of {total_wd_folders} sampl
 
 # Function to remove '*' characters from the input .faa files
 def clean_faa_file(file_path):
-    cleaned_file_path = file_path + ".cleaned"
+    cleaned_file_path = file_path + ".fasta"
     with open(file_path, 'r') as input_file, open(cleaned_file_path, 'w') as output_file:
         for line in input_file:
             if not line.startswith('>'):  # Only clean sequence lines, not headers
@@ -86,14 +86,14 @@ def process_folder(folder_path):
             # Clean the .faa file to remove '*' characters
             cleaned_file_path = clean_faa_file(file_path)
             try:
-                output_file_name = file_name.replace(donor_suffix, '_donor_prediction')
+                output_file_name = file_name.replace(donor_suffix, '_donor_prediction.txt')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt 10 -max_target_seqs 1"
+                command = f'blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt "10 qseqid sseqid qcovs pident length" -max_target_seqs 1'
                 subprocess.run(command, shell=True, check=True)
 
                 # Convert only the _prediction.txt files
                 txt_output_file = output_file_path
-                if txt_output_file.endswith('_prediction') and os.path.exists(txt_output_file):
+                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
@@ -107,14 +107,14 @@ def process_folder(folder_path):
             # Clean the .faa file to remove '*' characters
             cleaned_file_path = clean_faa_file(file_path)
             try:
-                output_file_name = file_name.replace(recipient_suffix, '_recipient_prediction')
+                output_file_name = file_name.replace(recipient_suffix, '_recipient_prediction.txt')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt 10 -max_target_seqs 1"
+                command = f'blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt "10 qseqid sseqid qcovs pident length" -max_target_seqs 1'
                 subprocess.run(command, shell=True, check=True)
 
                 # Convert only the _prediction.txt files
                 txt_output_file = output_file_path
-                if txt_output_file.endswith('_prediction') and os.path.exists(txt_output_file):
+                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
@@ -158,13 +158,23 @@ dfs = []
 # Walk through the directory tree to find all CSV files
 for root, dirs, files in os.walk(folder_path):
     for file in files:
-        if file.endswith('_prediction.csv'):
+        if file.endswith('_prediction.txt.csv'):
             file_path = os.path.join(root, file)
-            df = pd.read_csv(file_path)
-            dfs.append(df)
+
+            # Check if the file is empty before reading
+            if os.path.getsize(file_path) > 0:
+                df = pd.read_csv(file_path, header=None)
+                dfs.append(df)
+            else:
+                print(f"Skipping empty file: {file_path}")
+
+
 
 # Concatenate all DataFrames into a single DataFrame
 merged_df = pd.concat(dfs, ignore_index=True)
+
+new_header=['query','target','coverage%','identity%','align_length']
+merged_df.columns = new_header
 
 output_file_path = os.path.join(folder_path, 'summary_BLAST.csv')
 merged_df.to_csv(output_file_path, index=False)
