@@ -109,7 +109,7 @@ for root, dirs, files in os.walk(folder_path):
 # Concatenate all DataFrames into a single DataFrame
 merged_df = pd.concat(dfs, ignore_index=True)
 
-output_file_path = os.path.join(folder_path, 'summary_DeepNOG.csv')
+output_file_path = os.path.join(folder_path, 'summary_DeepNOG_allbins.csv')
 merged_df.to_csv(output_file_path, index=False)
 
 print(f"Summary CSV file saved to {output_file_path}")
@@ -153,8 +153,8 @@ logging.info(f"Number of unique genes: {len(gene_list)}")
 
 
 
-csv_file = "DeepNOG/summary_DeepNOG.csv"
-hgt_files_folder = "DeepNOG"
+csv_file = "DeepNOG_allbins/summary_DeepNOG_allbins.csv"
+hgt_files_folder = "DeepNOG_allbins"
 annotation_file = "annotation.csv"
 
 
@@ -168,7 +168,7 @@ if csv_file:
     merged_df = merged_df.drop(merged_df.columns[[3,5]], axis=1)
 
     # Save the merged DataFrame to a new CSV file
-    merged_df.to_csv('DeepNOG/summary_DeepNOG_DorR_COG.csv', index=False)
+    merged_df.to_csv('DeepNOG_allbins/summary_DeepNOG_allbins_COG.csv', index=False)
 else:
     print("Error: The updated CSV file path is None.")
 
