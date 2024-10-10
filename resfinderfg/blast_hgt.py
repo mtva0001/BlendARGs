@@ -241,12 +241,12 @@ def determine_direction_and_identity(gene_id, hgt_files_folder):
 
 
 # Function to update the CSV file with the new 'DorR' and 'Identity' columns
-def update_csv_with_identity(csv_file, hgt_files_folder):
+def update_csv(csv_file, hgt_files_folder):
     updated_rows = []
     with open(csv_file, 'r') as file:
         # Read and process header
         header = file.readline().strip()
-        updated_header = f"{header},DorR,Identity"  # Add new columns 'DorR' and 'Identity'
+        updated_header = f"{header},DorR,HGT_identity"  # Add new columns 'DorR' and 'Identity'
         updated_rows.append(updated_header)
 
         # Process each row in the CSV file
@@ -260,7 +260,7 @@ def update_csv_with_identity(csv_file, hgt_files_folder):
             updated_rows.append(updated_row)
 
     # Write updated rows to a new CSV file
-    output_csv_file = os.path.splitext(csv_file)[0] + '_DorR_Identity.csv'
+    output_csv_file = os.path.splitext(csv_file)[0] + '_DorR.csv'
     with open(output_csv_file, 'w') as outfile:
         for row in updated_rows:
             outfile.write(row + '\n')
@@ -271,7 +271,22 @@ def update_csv_with_identity(csv_file, hgt_files_folder):
 csv_file = 'BLAST/summary_BLAST.csv'
 hgt_files_folder = 'BLAST'
 annotation_file = 'annotation_resfinder.csv'
-update_csv_with_identity(csv_file, hgt_files_folder)
+
+updated_csv_file = update_csv(csv_file, hgt_files_folder)
+
+if updated_csv_file:
+    updated_df = pd.read_csv(updated_csv_file)  # Load the updated CSV as a DataFrame
+    annotation_df = pd.read_csv(annotation_file)  # Load the annotation file as a DataFrame
+
+    # Merge the updated CSV with the annotation file based on 'COG_ID' and 'COG'
+    merged_df = pd.merge(updated_df, annotation_df, left_on='target', right_on='ID', how='left')
+    merged_df = merged_df.drop(merged_df.columns[[7]], axis=1)
+
+    # Save the merged DataFrame to a new CSV file
+    merged_df.to_csv('BLAST/summary_BLAST_DorR.csv', index=False)
+else:
+    print("Error: The updated CSV file path is None.")
 
 
-print(f"The pipeline has completed.")
+
+print(f'The pipeline has completed, go home and sleep!')
