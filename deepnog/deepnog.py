@@ -58,7 +58,7 @@ logging.info(f"\nSummary: In {count_hgt_folders} out of {total_wd_folders} sampl
 
 # Function to remove '*' characters from the input .faa files
 def clean_faa_file(file_path):
-    cleaned_file_path = file_path + ".cleaned"
+    cleaned_file_path = file_path + ".fasta"
     with open(file_path, 'r') as input_file, open(cleaned_file_path, 'w') as output_file:
         for line in input_file:
             if not line.startswith('>'):  # Only clean sequence lines, not headers
@@ -74,8 +74,8 @@ def process_folder(folder_path):
     logging.info(f"Processing sample: {folder_name_sampleID}")
 
     # Define the file suffixes
-    donor_suffix = "_donor_genes.faa"
-    recipient_suffix = "_recipient_genes.faa"
+    donor_suffix = "donor_genes.faa"
+    recipient_suffix = "recipient_genes.faa"
 
     for file_name in os.listdir(folder_path):
         # Check for donor files
@@ -86,9 +86,9 @@ def process_folder(folder_path):
             # Clean the .faa file to remove '*' characters
             cleaned_file_path = clean_faa_file(file_path)
             try:
-                output_file_name = file_name.replace(donor_suffix, '_donor_prediction')
+                output_file_name = file_name.replace(donor_suffix, 'donor_prediction.csv')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99 -nw 32"
+                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 -d auto --out {output_file_path} -c 0.99 --verbose 3"
                 subprocess.run(command, shell=True, check=True)
 
             except subprocess.CalledProcessError as e:
@@ -102,9 +102,9 @@ def process_folder(folder_path):
             # Clean the .faa file to remove '*' characters
             cleaned_file_path = clean_faa_file(file_path)
             try:
-                output_file_name = file_name.replace(recipient_suffix, '_recipient_prediction')
+                output_file_name = file_name.replace(recipient_suffix, 'recipient_prediction.csv')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 --out {output_file_path} -c 0.99 -nw 32"
+                command = f"deepnog infer {cleaned_file_path} -db eggNOG5 -d auto --out {output_file_path} -c 0.99 --verbose 3"
                 subprocess.run(command, shell=True, check=True)
 
             except subprocess.CalledProcessError as e:
@@ -134,7 +134,7 @@ for root, dirs, files in os.walk(folder_path):
     for file in files:
         if file.endswith('_prediction.csv'):
             file_path = os.path.join(root, file)
-            df = pd.read_csv(file_path, header=None, names=['ID', 'COG_ID', 'Value', 'Group', 'Category'])
+            df = pd.read_csv(file_path, header=None, names=['ID', 'COG_ID', 'Value'])
             dfs.append(df)
 
 # Concatenate all DataFrames into a single DataFrame
@@ -204,13 +204,14 @@ def determine_direction_and_identity(gene_id, hgt_files_folder):
     return None, None
 
 
-# Function to update the CSV file with the new 'DorR' and 'Identity' columns
-def update_csv_with_identity(csv_file, hgt_files_folder):
+# Function to update the CSV file with the new 'DorR' and 'Identity' columns and merge with annotation.csv
+
+def update_csv(csv_file, hgt_files_folder):
     updated_rows = []
     with open(csv_file, 'r') as file:
         # Read and process header
         header = file.readline().strip()
-        updated_header = f"{header},DorR,Identity"  # Add new columns 'DorR' and 'Identity'
+        updated_header = f"{header},DorR,HGT_identity" 
         updated_rows.append(updated_header)
 
         # Process each row in the CSV file
@@ -223,16 +224,35 @@ def update_csv_with_identity(csv_file, hgt_files_folder):
                 updated_row = f"{line.strip()},,"  # Default values if not found
             updated_rows.append(updated_row)
 
-    # Write updated rows to a new CSV file
-    output_csv_file = os.path.splitext(csv_file)[0] + '_DorR_Identity.csv'
+    # Write updated rows to a CSV file 
+    
+    output_csv_file = os.path.splitext(csv_file)[0] + '_DorR.csv'
     with open(output_csv_file, 'w') as outfile:
         for row in updated_rows:
             outfile.write(row + '\n')
+    return output_csv_file
 
 
-# Usage
-csv_file = 'DeepNOG/summary_DeepNOG.csv'
-hgt_files_folder = 'DeepNOG'
-update_csv_with_identity(csv_file, hgt_files_folder)
+csv_file = "DeepNOG/summary_DeepNOG.csv"
+hgt_files_folder = "DeepNOG"
+annotation_file = "annotation.csv"
 
-print(f"The pipeline has completed.")
+updated_csv_file = update_csv(csv_file, hgt_files_folder)
+
+if updated_csv_file:
+    updated_df = pd.read_csv(updated_csv_file)  # Load the updated CSV as a DataFrame
+    annotation_df = pd.read_csv(annotation_file)  # Load the annotation file as a DataFrame
+
+    # Merge the updated CSV with the annotation file based on 'COG_ID' and 'COG'
+    merged_df = pd.merge(updated_df, annotation_df, left_on='COG_ID', right_on='COG', how='left')
+    merged_df = merged_df.drop(merged_df.columns[[5,7]], axis=1)
+    merged_df = merged_df.drop([0])
+
+    # Save the merged DataFrame to a new CSV file
+    merged_df.to_csv('DeepNOG/summary_DeepNOG_DorR_COG.csv', index=False)
+else:
+    print("Error: The updated CSV file path is None.")
+
+
+
+print(f'The pipeline has completed, go home and sleep!')
