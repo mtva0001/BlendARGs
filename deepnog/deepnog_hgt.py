@@ -134,7 +134,7 @@ for root, dirs, files in os.walk(folder_path):
     for file in files:
         if file.endswith('_prediction.csv'):
             file_path = os.path.join(root, file)
-            df = pd.read_csv(file_path, header=None, names=['ID', 'COG_ID', 'Value'])
+            df = pd.read_csv(file_path, header=0, names=['ID', 'COG_ID', 'Value'])
             dfs.append(df)
 
 # Concatenate all DataFrames into a single DataFrame
@@ -246,7 +246,6 @@ if updated_csv_file:
     # Merge the updated CSV with the annotation file based on 'COG_ID' and 'COG'
     merged_df = pd.merge(updated_df, annotation_df, left_on='COG_ID', right_on='COG', how='left')
     merged_df = merged_df.drop(merged_df.columns[[5,7]], axis=1)
-    merged_df = merged_df.drop([0])
 
     # Save the merged DataFrame to a new CSV file
     merged_df.to_csv('DeepNOG/summary_DeepNOG_DorR_COG.csv', index=False)
