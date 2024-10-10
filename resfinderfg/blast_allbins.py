@@ -56,39 +56,25 @@ logging.info(f"\nSummary: In {count_hgt_folders} out of {total_wd_folders} sampl
 
 
 
-# Function to remove '*' characters from the input .faa files
-def clean_faa_file(file_path):
-    cleaned_file_path = file_path + ".fasta"
-    with open(file_path, 'r') as input_file, open(cleaned_file_path, 'w') as output_file:
-        for line in input_file:
-            if not line.startswith('>'):  # Only clean sequence lines, not headers
-                line = line.replace('*', '')
-            output_file.write(line)
-    return cleaned_file_path
-
-
 def process_folder(folder_path):
     folder_name = os.path.basename(folder_path)
     folder_name_parts = folder_name.split('_MetaCHIP_wd')
     folder_name_sampleID = folder_name_parts[0]
     logging.info(f"Processing sample: {folder_name_sampleID}")
 
-    # Define the file suffixes
-    donor_suffix = "_donor_genes.faa"
-    recipient_suffix = "_recipient_genes.faa"
+    # Define the file suffix
+    combined_fasta_suffix = "_combined_faa.fasta"
 
     for file_name in os.listdir(folder_path):
         # Check for donor files
-        if file_name.endswith(donor_suffix):
+        if file_name.endswith(combined_fasta_suffix):
             file_path = os.path.join(folder_path, file_name)
             logging.info(f"Processing donor file: {file_path}")
-
-            # Clean the .faa file to remove '*' characters
-            cleaned_file_path = clean_faa_file(file_path)
+            
             try:
-                output_file_name = file_name.replace(donor_suffix, '_donor_prediction.txt')
+                output_file_name = file_name.replace(combined_fasta_suffix, '_prediction.txt')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f'blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt "10 qseqid sseqid qcovs pident length" -max_target_seqs 1'
+                command = f'blastp -query {file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt "10 qseqid sseqid qcovs pident length" -max_target_seqs 1'
                 subprocess.run(command, shell=True, check=True)
 
                 # Convert only the _prediction.txt files
@@ -99,28 +85,7 @@ def process_folder(folder_path):
             except subprocess.CalledProcessError as e:
                 logging.error(f"Error processing donor file {cleaned_file_path}: {e}")
 
-        # Check for recipient files
-        elif file_name.endswith(recipient_suffix):
-            file_path = os.path.join(folder_path, file_name)
-            logging.info(f"Processing recipient file: {file_path}")
-
-            # Clean the .faa file to remove '*' characters
-            cleaned_file_path = clean_faa_file(file_path)
-            try:
-                output_file_name = file_name.replace(recipient_suffix, '_recipient_prediction.txt')
-                output_file_path = os.path.join(folder_path, output_file_name)
-                command = f'blastp -query {cleaned_file_path} -out {output_file_path} -num_threads 32 -db resfinderfg2.0 -outfmt "10 qseqid sseqid qcovs pident length" -max_target_seqs 1'
-                subprocess.run(command, shell=True, check=True)
-
-                # Convert only the _prediction.txt files
-                txt_output_file = output_file_path
-                if txt_output_file.endswith('_prediction.txt') and os.path.exists(txt_output_file):
-                    convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
-
-            except subprocess.CalledProcessError as e:
-                logging.error(f"Error processing recipient file {cleaned_file_path}: {e}")
-
-
+        
 def convert_txt_to_csv(txt_file, csv_file):
     """
     Converts a comma-separated .txt file to a comma-separated .csv file.
@@ -139,7 +104,7 @@ def convert_txt_to_csv(txt_file, csv_file):
 
 
 def main():
-    main_folder_path = "BLAST"
+    main_folder_path = "BLAST_allbins"
 
     for folder_name in os.listdir(main_folder_path):
         folder_path = os.path.join(main_folder_path, folder_name)
@@ -152,7 +117,7 @@ if __name__ == "__main__":
 
 
 # Read all CSV files into a single DataFrame
-folder_path = 'BLAST'
+folder_path = 'BLAST_allbins'
 
 dfs = []
 # Walk through the directory tree to find all CSV files
@@ -213,10 +178,8 @@ with open(output_file_path, 'w', newline='') as csvfile:
     writer.writerow(['Gene'])
     writer.writerows([[gene] for gene in gene_list])
 
-logging.info(f"Gene list saved to {output_file_path} successfully in the BLAST folder.")
+logging.info(f"Gene list saved to {output_file_path} successfully in the BLAST_allbins folder.")
 logging.info(f"Number of unique genes: {len(gene_list)}")
-
-
 
 
 
@@ -225,10 +188,9 @@ csv_file = 'BLAST/summary_BLAST_allbins.csv'
 hgt_files_folder = 'BLAST_allbins'
 annotation_file = 'annotation_resfinder.csv'
 
-updated_csv_file = update_csv(csv_file, hgt_files_folder)
 
-if updated_csv_file:
-    updated_df = pd.read_csv(updated_csv_file)  # Load the updated CSV as a DataFrame
+if csv_file:
+    updated_df = pd.read_csv(csv_file)  # Load the CSV as a DataFrame
     annotation_df = pd.read_csv(annotation_file)  # Load the annotation file as a DataFrame
 
     # Merge the updated CSV with the annotation file based on 'COG_ID' and 'COG'
