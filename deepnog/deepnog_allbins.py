@@ -77,7 +77,7 @@ def process_folder(folder_path):
                 subprocess.run(command, shell=True, check=True)
 
             except subprocess.CalledProcessError as e:
-                logging.error(f"Error processing donor file {cleaned_file_path}: {e}")
+                logging.error(f"Error processing donor file {file_path}: {e}")
 
 
 
