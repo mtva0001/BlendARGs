@@ -264,11 +264,14 @@ def update_csv_with_identity(csv_file, hgt_files_folder):
     with open(output_csv_file, 'w') as outfile:
         for row in updated_rows:
             outfile.write(row + '\n')
+    return output_csv_file
 
 
 # Usage
 csv_file = 'BLAST/summary_BLAST.csv'
 hgt_files_folder = 'BLAST'
+annotation_file = 'annotation_resfinder.csv'
 update_csv_with_identity(csv_file, hgt_files_folder)
+
 
 print(f"The pipeline has completed.")
