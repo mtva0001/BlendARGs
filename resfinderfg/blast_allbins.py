@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Define the source directory and the target directory
 source_dir = '.'
-target_dir = 'BLAST'
+target_dir = 'BLAST_allbins'
 
 # Create the target directory if it doesn't exist
 os.makedirs(target_dir, exist_ok=True)
@@ -83,7 +83,7 @@ def process_folder(folder_path):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
-                logging.error(f"Error processing donor file {cleaned_file_path}: {e}")
+                logging.error(f"Error processing donor file {file_path}: {e}")
 
         
 def convert_txt_to_csv(txt_file, csv_file):
