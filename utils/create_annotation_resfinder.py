@@ -8,22 +8,17 @@ faa_file_path = 'ResFinder_FG_AA.faa'
 # Path to the output CSV file
 output_csv_path = 'annotation_resfinder.csv'
 
-# Initialize a list to store the header information
 headers_data = []
 
-# Read the .faa file
 with open(faa_file_path, 'r') as file:
     for line in file:
-        # Check if the line starts with '>'
         if line.startswith('>'):
-            # Remove the '>' and split by '|'
             header = line[1:].strip().split('|')
             headers_data.append(header)
 
-# Create a DataFrame from the headers data
+
 headers_df = pd.DataFrame(headers_data, columns=['ARG', 'ID', 'Source', 'AB'])
 
-# Save the DataFrame to a CSV file
 headers_df.to_csv(output_csv_path, index=False)
 
 print(f"Annotation CSV file saved to {output_csv_path}")
