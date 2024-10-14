@@ -10,7 +10,7 @@ def translate_dna_to_protein(input_csv, output_fasta):
         next(reader)
         
         for row in reader:
-            header = row[0]  # Header from the 1st column
+            header = row[0].replace("20k_concatenated-long-orfs_", "").replace("@@@", "_")  # Header from the 1st column, way too long
             dna_sequence = row[3]  # DNA sequence from the 4th column
             
             # Translate DNA to protein and remove stop codons (*)
