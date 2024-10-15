@@ -1,6 +1,6 @@
 This repository contains scripts that have been used during the BlendARGs project with the aim to investigate the dissemination of antibiotic resistance genes (ARGs) by horizontal gene transfers (HGTs) in both marine and freshwater environments. 
 
-Publicly available metagenomic datasets (Freshwater: [Buck et al. 2021](https://www.nature.com/articles/s41597-021-00910-1), and Marine: [Biller et al. 2018](https://www.nature.com/articles/sdata2018176)) were processed by [nf-core/mag](https://nf-co.re/mag/2.5.1/) Nextflow pipeline (for details, see multiQC summary reports). The resulted bins (>= 40 % completeness) were used as input data for the following analyses:
+Publicly available metagenomic data sets (Freshwater: [Buck et al. 2021](https://www.nature.com/articles/s41597-021-00910-1), and Marine: [Biller et al. 2018](https://www.nature.com/articles/sdata2018176)) were processed by [nf-core/mag](https://nf-co.re/mag/2.5.1/) Nextflow pipeline (for details, see multiQC summary reports). The resulted bins (>= 40 % completeness) were used as input data for the following analyses:
 
 1. [MetaCHIP](https://github.com/songweizhi/MetaCHIP) to detect putative HGT events and the involved genes across sampled water depths,
 2. Functional annotation of genes using [DeepNOG](https://github.com/univieCUBE/deepnog) (db: eggNOG5),
