@@ -3,8 +3,8 @@
 
 # Set paths for your geNomad directory and output summary files
 genomad_dir="/VirusIdentification/geNomad"
-virus_summary="virus_summary_Marine.tsv"
-plasmid_summary="plasmid_summary_Marine.tsv"
+virus_summary="virus_summary.tsv"
+plasmid_summary="plasmid_summary.tsv"
 
 # Clear or create the summary files with headers
 echo -e "Sample\t$(head -n 1 $(find $genomad_dir -type f -name "*_virus_summary.tsv" | head -n 1))" > $virus_summary
