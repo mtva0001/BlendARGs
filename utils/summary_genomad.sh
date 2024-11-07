@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Set paths for your geNomad directory and output summary files
-genomad_dir="result_BlendARGs/VirusIdentification/geNomad"
+genomad_dir="/VirusIdentification/geNomad"
 virus_summary="virus_summary_Marine.tsv"
 plasmid_summary="plasmid_summary_Marine.tsv"
 
@@ -11,7 +11,7 @@ echo -e "Sample\t$(head -n 1 $(find $genomad_dir -type f -name "*_virus_summary.
 echo -e "Sample\t$(head -n 1 $(find $genomad_dir -type f -name "*_plasmid_summary.tsv" | head -n 1))" > $plasmid_summary
 
 # Loop through each sample folder and process the .tsv files
-for sample_folder in "$genomad_dir"/S*; do
+for sample_folder in "$genomad_dir"/*; do
     sample_name=$(basename "$sample_folder")
 
     # Paths to the virus and plasmid summary files
