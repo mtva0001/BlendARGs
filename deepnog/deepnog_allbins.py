@@ -36,7 +36,7 @@ for root, dirs, files in os.walk(source_dir):
                 for hgt_file in hgt_files:
                     with open(hgt_file, 'r') as f:
                         lines = f.readlines()
-                        if len(lines) >= 2:  # At least one header and one data row
+                        if len(lines) >= 1:  # At least one header
                             has_hgt_subfolder = True
                             src_path = os.path.join(root, subdir)
                             dst_path = os.path.join(target_dir, subdir)
@@ -52,7 +52,7 @@ for root, dirs, files in os.walk(source_dir):
         if has_hgt_subfolder:
             count_hgt_folders += 1
 
-logging.info(f"\nSummary: In {count_hgt_folders} out of {total_wd_folders} samples MetaCHIP have detected HGT events.")
+logging.info(f"\nProcessing {count_hgt_folders} number of samples.")
 
 
 
@@ -68,7 +68,7 @@ def process_folder(folder_path):
     for file_name in os.listdir(folder_path):
         if file_name.endswith(combined_fasta_suffix):
             file_path = os.path.join(folder_path, file_name)
-            logging.info(f"Processing donor file: {file_path}")
+            logging.info(f"Processing file: {file_path}")
             
             try:
                 output_file_name = file_name.replace(combined_fasta_suffix, '_prediction.csv')
@@ -115,48 +115,9 @@ merged_df.to_csv(output_file_path, index=False)
 print(f"Summary CSV file saved to {output_file_path}")
 
 
-
-#Create gene list
-source_dir = 'DeepNOG_allbins'
-
-gene_list = []
-
-for root, dirs, files in os.walk(source_dir):
-    for file in files:
-        if file.endswith('_detected_HGTs.txt'):
-            filepath = os.path.join(root, file)
-            logging.info(f"Processing file: {filepath}")
-            genes_in_file = set()
-            try:
-                with open(filepath, 'r') as txtfile:
-                    reader = csv.DictReader(txtfile, delimiter='\t')
-                    for row in reader:
-                        genes_in_file.add(row['Gene_1'])
-                        genes_in_file.add(row['Gene_2'])
-            except Exception as e:
-                logging.error(f"Error reading file '{filepath}': {e}")
-
-            gene_list.extend([gene for gene in genes_in_file if gene not in gene_list])
-
-logging.info(f"Gene list: {gene_list}")
-
-output_file_path = os.path.join('DeepNOG_allbins', 'gene_list.csv')
-with open(output_file_path, 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(['Gene'])
-    writer.writerows([[gene] for gene in gene_list])
-
-logging.info(f"Gene list saved to {output_file_path} successfully in the DeepNOG_allbins folder.")
-logging.info(f"Number of unique genes: {len(gene_list)}")
-
-
-
-
-
 csv_file = "DeepNOG_allbins/summary_DeepNOG_allbins.csv"
 hgt_files_folder = "DeepNOG_allbins"
 annotation_file = "annotation.csv"
-
 
 
 if csv_file:
