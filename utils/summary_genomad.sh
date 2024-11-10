@@ -1,4 +1,5 @@
-#This script creates a summary file for plasmids and viruses identified by geNomad
+#This script outputs three summary files for plasmids, viruses and their protein sequences identified by geNomad.
+
 import os
 import pandas as pd
 
@@ -116,15 +117,3 @@ summary_virus.to_csv(summary_virus_path, index=False)
 summary_plasmid.to_csv(summary_plasmid_path, index=False)
 print(f"Virus data saved to {summary_virus_path}")
 print(f"Plasmid data saved to {summary_plasmid_path}")
-
-# Load the main genomad_summary.csv file
-df_summary = pd.read_csv(summary_path)
-
-# First merge with summary_virus, then with summary_plasmid to fill any empty rows
-df_merged = pd.merge(df_summary, summary_virus, on="gene", how="left")
-df_merged = pd.merge(df_merged, summary_plasmid, on="gene", how="left")
-
-# Save the final merged summary file
-final_summary_path = os.path.join(base_path, "genomad_final_summary.csv")
-df_merged.to_csv(final_summary_path, index=False)
-print(f"Final merged data saved to {final_summary_path}")
