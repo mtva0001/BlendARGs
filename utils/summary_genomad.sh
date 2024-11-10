@@ -1,4 +1,4 @@
-#This script create two summary files for plasmids and viruses identified by geNomad
+#This script creates a summary file for plasmids and viruses identified by geNomad
 import os
 import pandas as pd
 
