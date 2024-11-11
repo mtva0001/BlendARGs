@@ -38,7 +38,7 @@ for root, dirs, files in os.walk(source_dir):
                 for hgt_file in hgt_files:
                     with open(hgt_file, 'r') as f:
                         lines = f.readlines()
-                        if len(lines) >= 2:  # At least one header and one data row
+                        if len(lines) >= 1:  # At least one header and one data row
                             has_hgt_subfolder = True
                             src_path = os.path.join(root, subdir)
                             dst_path = os.path.join(target_dir, subdir)
@@ -54,7 +54,7 @@ for root, dirs, files in os.walk(source_dir):
         if has_hgt_subfolder:
             count_hgt_folders += 1
 
-logging.info(f"\nSummary: In {count_hgt_folders} out of {total_wd_folders} samples MetaCHIP have detected HGT events.")
+logging.info(f"\nProcessing {count_hgt_folders} number of samples.")
 
 
 
@@ -98,7 +98,7 @@ def process_folder(folder_path):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
-                logging.error(f"Error processing combined file {cleaned_file_path}: {e}")
+                logging.error(f"Error processing combined file {file_path}: {e}")
 
 
 
@@ -151,5 +151,3 @@ output_file_path = os.path.join(folder_path, 'summary_RGI_allbins.csv')
 merged_df.to_csv(output_file_path, index=False)
 
 print(f"Summary CSV file saved to {output_file_path}")
-
-
