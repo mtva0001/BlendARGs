@@ -1,4 +1,4 @@
-# Table S5 from the paper https://doi.org/10.1186/s40168‑023‑01479‑0 was used to create a AA fasta file for Latent ARGs.
+# Table S5 from the paper https://doi.org/10.1186/s40168‑023‑01479‑0 was used to create a AA fasta file for Latent ARGs db.
 
 import csv
 from Bio.Seq import Seq
