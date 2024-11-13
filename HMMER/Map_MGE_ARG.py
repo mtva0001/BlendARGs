@@ -1,87 +1,90 @@
-# This script uses MGEs identified by geNomad and maps to the detected ARGs by the three applied databases.
+# This script uses MGEs identified by geNomad and maps to the newly compailed db of detected ARGs.
 
-import os
-import subprocess
 import pandas as pd
+import subprocess
+import os
 
-# Define paths
+# Paths to the input files
 query_file = "../BlendARGs/result_BlendARGs/VirusIdentification/geNomad/genomad_summary.csv"
 target_file = "./ARG_AA_summary.csv"
-hmmer_dir = "temp_hmmer"  # Directory to store HMMER results
-alignment_tool = "mafft"  # Use MAFFT for alignment
-final_output_file = "compiled_hmmer_results.csv"  # Final compiled output file
+final_output_file = "blastp_MGE_ARG_results.csv"
 
-# Create directories if they don't exist
-os.makedirs(hmmer_dir, exist_ok=True)
-
-# Read the query and target dataframes
+# Read in query and target data
 query_df = pd.read_csv(query_file)
 target_df = pd.read_csv(target_file)
 
-# Prepare the target dataframe by extracting the sample group from the Query column
+# Function to extract sample name from the 'Query' column
 def get_sample_from_query(query):
     if isinstance(query, str) and query.strip():
         return query.split('_')[0]
     else:
         return "Unknown"
 
+# Apply the sample extraction to the 'Sample' column in both dataframes
+query_df['Sample'] = query_df['Sample']  # Sample column already present in query_df
 target_df['Sample'] = target_df['Query'].apply(get_sample_from_query)
 
-# Initialize a list to collect all HMMER results
-compiled_results = []
+# Store results from each sample for final combination
+all_results = []
 
-# Iterate over samples in the query and target data
-for sample in target_df['Sample'].unique():
-    # Filter the query sequences based on the sample
+# Process each sample group individually
+for sample in query_df['Sample'].unique():
+    print(f"Processing sample: {sample}")
+    
+    # Filter sequences for the current sample
     sample_query_df = query_df[query_df['Sample'] == sample]
+    sample_target_df = target_df[target_df['Sample'] == sample]
     
-    # Prepare FASTA file for this sample
-    temp_fasta = os.path.join(hmmer_dir, f"{sample}_target.fasta")
-    with open(temp_fasta, 'w') as fasta_file:
-        for index, row in sample_query_df.iterrows():
-            fasta_file.write(f">{row['gene']}\n{row['sequence']}\n")
+    # Skip if there are no corresponding target sequences for the sample
+    if sample_target_df.empty:
+        print(f"No target sequences found for sample: {sample}")
+        continue
 
-    # Align the sequences using MAFFT
-    aligned_fasta = os.path.join(hmmer_dir, f"{sample}_aligned.fasta")
-    subprocess.run([alignment_tool, "--auto", temp_fasta], stdout=open(aligned_fasta, 'w'))
+    # Save target sequences to a FASTA file for makeblastdb
+    target_fasta = f"{sample}_target.fasta"
+    with open(target_fasta, "w") as f:
+        for _, row in sample_target_df.iterrows():
+            f.write(f">{row['Query']}\n{row['Protein_Sequence']}\n")
+
+    # Run makeblastdb to create a database from target sequences
+    target_db = f"{sample}_target_db"
+    subprocess.run(["makeblastdb", "-in", target_fasta, "-dbtype", "prot", "-out", target_db])
+
+    # Save query sequences to a FASTA file for blastp
+    query_fasta = f"{sample}_query.fasta"
+    with open(query_fasta, "w") as f:
+        for _, row in sample_query_df.iterrows():
+            f.write(f">{row['gene']}\n{row['sequence']}\n")
+
+    # Run blastp with filtering for alignment identity
+    blast_output = f"{sample}_blast_output.tsv"
+    subprocess.run([
+        "blastp", "-query", query_fasta, "-db", target_db,
+        "-out", blast_output, "-outfmt", "6 qseqid sseqid qcovs pident length", "-max_target_seqs", "1",
+    ])
+
+    # Load the BLAST output and filter
+    blast_df = pd.read_csv(blast_output, sep="\t", header=None)
+    blast_df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length']
+
+    # Apply the filter for identity and coverage
+    filtered_blast_df = blast_df[(blast_df["identity%"] >= 95) & (blast_df["coverage%"] >= 0.8)]
     
-    # Build the HMM profile from the aligned sequences
-    profile_file = os.path.join(hmmer_dir, f"{sample}_profile.hmm")
-    subprocess.run(["hmmbuild", profile_file, aligned_fasta])
-
-    # Now perform hmmsearch with the constructed HMM profile
-    hmmer_output = os.path.join(hmmer_dir, f"{sample}_output.tbl")
-    subprocess.run(["hmmsearch", "--domtblout", hmmer_output, profile_file, temp_fasta, "--cpu 32"])
-
-    # Process the HMMER output (e.g., filtering by E-value)
-    hmmer_df = pd.read_csv(hmmer_output, sep="\s+", comment="#", header=None)
+    # Add sample information and store in all_results
+    filtered_blast_df["Sample"] = sample
+    all_results.append(filtered_blast_df)
     
-    # Read HMMER output dynamically based on number of columns
-    hmmer_df = pd.read_csv(hmmer_output, sep="\s+", comment="#", header=None)
+    # Clean up temporary files
+    os.remove(target_fasta)
+    os.remove(query_fasta)
+    os.remove(blast_output)
+    # Optionally, remove the BLAST database files
+    for ext in [".phr", ".pin", ".psq"]:
+        db_file = f"{target_db}{ext}"
+        if os.path.exists(db_file):
+            os.remove(db_file)
 
-    # Define column names for the domtblout format
-    hmmer_df.columns = [
-        "target_name", "t_accession", "tlen", "query_name", "q_accession", "qlen",
-        "E_value", "score_sequence", "bias_sequence", "#",
-        "of", "c-Evalue", "i-Evalue", "score", "bias",
-        "hmm_from", "hmm_to", "ali_from", "ali_to", "env_from", "env_to", "acc", "description"
-    ]
-
-    # Filter by E-value < 1e-3
-    hmmer_df_filtered = hmmer_df[(hmmer_df["E_value_domain"] < 1e-3) & (hmmer_df["acc"] >= 0.95)]
-
-    # Add the sample column for identification
-    hmmer_df_filtered['Sample'] = sample
-
-    # Append the filtered results to the compiled list
-    compiled_results.append(hmmer_df_filtered)
-
-    print(f"Processed sample {sample} - HMMER results saved.")
-
-# Concatenate all results into a single dataframe
-compiled_df = pd.concat(compiled_results, ignore_index=True)
-
-# Save the final compiled dataframe to a CSV file
-compiled_df.to_csv(final_output_file, index=False)
-
-print(f"All HMMER results have been compiled and saved to {final_output_file}")
+# Combine all results into a single DataFrame and save to CSV
+final_df = pd.concat(all_results, ignore_index=True)
+final_df.to_csv(final_output_file, index=False)
+print(f"Final combined BLAST results saved to {final_output_file}.")
