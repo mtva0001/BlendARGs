@@ -108,8 +108,8 @@ for root, dirs, files in os.walk(folder_path):
                 dfs.append(df)
 merged_df = pd.concat(dfs, ignore_index=True)
 
-# Filter by identity >= 95% and coverage >= 80%
-filtered_blast_df = merged_df[(merged_df["identity%"] >= 95) & (merged_df["coverage%"] >= 80)]
+# Filter by identity >= 90% and coverage >= 20%
+filtered_blast_df = merged_df[(merged_df["identity%"] >= 90) & (merged_df["coverage%"] >= 20)]
 output_file_path = os.path.join(folder_path, 'summary_BLAST.csv')
 filtered_blast_df.to_csv(output_file_path, index=False)
 print(f"Summary CSV file saved to {output_file_path}")
