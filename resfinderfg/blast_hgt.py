@@ -114,24 +114,6 @@ output_file_path = os.path.join(folder_path, 'summary_BLAST.csv')
 filtered_blast_df.to_csv(output_file_path, index=False)
 print(f"Summary CSV file saved to {output_file_path}")
 
-# Create a gene list
-gene_list = []
-for root, dirs, files in os.walk(folder_path):
-    for file in files:
-        if file.endswith('_detected_HGTs.txt'):
-            filepath = os.path.join(root, file)
-            with open(filepath, 'r') as txtfile:
-                reader = csv.DictReader(txtfile, delimiter='\t')
-                genes_in_file = {row['Gene_1'] for row in reader}.union({row['Gene_2'] for row in reader})
-            gene_list.extend([gene for gene in genes_in_file if gene not in gene_list])
-
-output_file_path = os.path.join('BLAST', 'gene_list.csv')
-with open(output_file_path, 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(['Gene'])
-    writer.writerows([[gene] for gene in gene_list])
-logging.info(f"Gene list saved to {output_file_path}")
-
 # Function to determine the direction (donor/recipient) and retrieve Identity
 def determine_direction_and_identity(gene_id, hgt_files_folder):
     for root, dirs, files in os.walk(hgt_files_folder):
