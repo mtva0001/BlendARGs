@@ -56,19 +56,23 @@ for sample in query_df['Sample'].unique():
         for _, row in sample_query_df.iterrows():
             f.write(f">{row['gene']}\n{row['sequence']}\n")
 
-    # Run blastp with filtering for alignment identity
+    # Run blastp to get top 10 hits per query
     blast_output = f"{sample}_blast_output.tsv"
     subprocess.run([
-        "blastp", "-query", query_fasta, "-db", target_db,
-        "-out", blast_output, "-outfmt", "6 qseqid sseqid qcovs pident length", "-max_target_seqs", "1",
+        "blastp", "-query", query_fasta, "-db", target_db, "-evalue", "1e-10",
+        "-out", blast_output, "-outfmt", "6 qseqid sseqid qcovs pident length bitscore", "-max_target_seqs", "10"
     ])
 
-    # Load the BLAST output and filter
+    # Load the BLAST output
     blast_df = pd.read_csv(blast_output, sep="\t", header=None)
-    blast_df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length']
+    blast_df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
 
-    # Apply the filter for identity and coverage
-    filtered_blast_df = blast_df[(blast_df["identity%"] >= 95) & (blast_df["coverage%"] >= 0.8)]
+    # Sort by query and bitscore (descending) to keep only the highest bitscore hit per query
+    blast_df = blast_df.sort_values(by=['query', 'bitscore'], ascending=[True, False])
+    best_hits_df = blast_df.drop_duplicates(subset='query', keep='first')
+
+    # Apply the filter for identity >= 95% and coverage >= 80%
+    filtered_blast_df = best_hits_df[(best_hits_df["identity%"] >= 95) & (best_hits_df["coverage%"] >= 80)]
     
     # Add sample information and store in all_results
     filtered_blast_df["Sample"] = sample
