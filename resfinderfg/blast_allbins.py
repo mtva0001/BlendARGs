@@ -32,7 +32,7 @@ for root, dirs, files in os.walk(source_dir):
                 hgt_file_pattern = os.path.join(root, subdir, '*_detected_HGTs.txt')
                 hgt_files = glob.glob(hgt_file_pattern)
 
-                # Check if any matching file exists and has at least two lines
+                # Check if any matching file exists and has at least a header
                 for hgt_file in hgt_files:
                     with open(hgt_file, 'r') as f:
                         lines = f.readlines()
@@ -100,56 +100,73 @@ def convert_txt_to_csv(txt_file, csv_file):
         logging.error(f"Error converting {txt_file} to CSV: {e}")
 
 
+def filter_top_hits_per_file(csv_file):
+    """
+    Filters the BLAST result in each CSV file to keep only the top hit (highest bitscore) for each query.
+    """
+    df = pd.read_csv(csv_file, header=None)
+    df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
+
+    # Sort by query and bitscore (descending)
+    df_sorted = df.sort_values(by=['query', 'bitscore'], ascending=[True, False])
+
+    # Drop duplicates based on 'query', keeping the row with the highest bitscore
+    df_filtered = df_sorted.drop_duplicates(subset='query', keep='first')
+
+    return df_filtered
+
+
 def main():
     main_folder_path = "BLAST_allbins"
+    dfs = []
 
+    # Process each folder
     for folder_name in os.listdir(main_folder_path):
         folder_path = os.path.join(main_folder_path, folder_name)
         if os.path.isdir(folder_path):
             process_folder(folder_path)
 
+    # Walk through the directory tree to find all prediction CSV files
+    for root, dirs, files in os.walk(main_folder_path):
+        for file in files:
+            if file.endswith('_prediction.txt.csv'):
+                file_path = os.path.join(root, file)
+                if os.path.getsize(file_path) > 0:
+                    # Filter each file to retain only the top BLAST hit based on bitscore
+                    df_filtered = filter_top_hits_per_file(file_path)
+                    dfs.append(df_filtered)
+                else:
+                    print(f"Skipping empty file: {file_path}")
+
+    # Concatenate all DataFrames into a single DataFrame
+    if dfs:
+        merged_df = pd.concat(dfs, ignore_index=True)
+        new_header = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
+        merged_df.columns = new_header
+
+        # Apply additional filters for identity and coverage
+        filtered_df = merged_df[(merged_df['identity%'] >= 90) & (merged_df['coverage%'] >= 20)]
+
+        output_file_path = os.path.join(main_folder_path, 'summary_BLAST_allbins_filtered.csv')
+        filtered_df.to_csv(output_file_path, index=False)
+        print(f"Filtered summary CSV file saved to {output_file_path}")
+
+        # Merge with annotation file
+        annotation_file = 'annotation_resfinder.csv'
+
+        if output_file_path:
+            updated_df = pd.read_csv(output_file_path)
+            annotation_df = pd.read_csv(annotation_file)
+
+            # Merge the updated CSV with the annotation file based on 'target' and 'ID'
+            merged_df = pd.merge(updated_df, annotation_df, left_on='target', right_on='ID', how='left')
+            merged_df.to_csv('BLAST_allbins/summary_BLAST_allbins_RF.csv', index=False)
+        else:
+            print("Error: The updated CSV file path is None.")
+
+        print(f'The pipeline has completed, go home and sleep!')
+    else:
+        print("No valid BLAST result files to process.")
+
 if __name__ == "__main__":
     main()
-
-
-# Read all CSV files into a single DataFrame
-folder_path = 'BLAST_allbins'
-dfs = []
-
-# Walk through the directory tree to find all CSV files
-for root, dirs, files in os.walk(folder_path):
-    for file in files:
-        if file.endswith('_prediction.txt.csv'):
-            file_path = os.path.join(root, file)
-            if os.path.getsize(file_path) > 0:
-                df = pd.read_csv(file_path, header=None)
-                dfs.append(df)
-            else:
-                print(f"Skipping empty file: {file_path}")
-
-# Concatenate all DataFrames into a single DataFrame
-merged_df = pd.concat(dfs, ignore_index=True)
-new_header = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
-merged_df.columns = new_header
-
-# Apply filters
-filtered_df = merged_df[(merged_df['identity%'] >= 90) & (merged_df['coverage%'] >= 20)]
-output_file_path = os.path.join(folder_path, 'summary_BLAST_allbins_filtered.csv')
-filtered_df.to_csv(output_file_path, index=False)
-print(f"Filtered summary CSV file saved to {output_file_path}")
-
-
-csv_file = 'BLAST_allbins/summary_BLAST_allbins_filtered.csv'
-annotation_file = 'annotation_resfinder.csv'
-
-if csv_file:
-    updated_df = pd.read_csv(csv_file)
-    annotation_df = pd.read_csv(annotation_file)
-
-    # Merge the updated CSV with the annotation file based on 'target' and 'ID'
-    merged_df = pd.merge(updated_df, annotation_df, left_on='target', right_on='ID', how='left')
-    merged_df.to_csv('BLAST_allbins/summary_BLAST_allbins_RF.csv', index=False)
-else:
-    print("Error: The updated CSV file path is None.")
-
-print(f'The pipeline has completed, go home and sleep!')
