@@ -66,7 +66,7 @@ def process_folder(folder_path):
     for file_name in os.listdir(folder_path):
         if file_name.endswith(combined_fasta_suffix):
             file_path = os.path.join(folder_path, file_name)
-            logging.info(f"Processing donor file: {file_path}")
+            logging.info(f"Processing file: {file_path}")
 
             try:
                 output_file_name = file_name.replace(combined_fasta_suffix, '_prediction.txt')
@@ -80,7 +80,7 @@ def process_folder(folder_path):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
-                logging.error(f"Error processing donor file {file_path}: {e}")
+                logging.error(f"Error processing file {file_path}: {e}")
 
 
 def convert_txt_to_csv(txt_file, csv_file):
