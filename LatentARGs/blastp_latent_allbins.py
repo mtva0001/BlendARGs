@@ -16,16 +16,10 @@ target_dir = 'BLAST_allbins_latent'
 # Create the target directory if it doesn't exist
 os.makedirs(target_dir, exist_ok=True)
 
-# Counters
-total_wd_folders = 0
-count_hgt_folders = 0
 
 # Walk through the directory tree starting from the source directory
 for root, dirs, files in os.walk(source_dir):
     if root.endswith('_wd'):
-        total_wd_folders += 1  # Increment the total _wd folders counter
-        has_hgt_subfolder = False
-
         for subdir in dirs:
             if '_HGT_' in subdir:
                 # Search for any file that matches *_detected_HGTs.txt
@@ -36,8 +30,7 @@ for root, dirs, files in os.walk(source_dir):
                 for hgt_file in hgt_files:
                     with open(hgt_file, 'r') as f:
                         lines = f.readlines()
-                        if len(lines) >= 1:  # At least one header and one data row
-                            has_hgt_subfolder = True
+                        if len(lines) >= 1:
                             src_path = os.path.join(root, subdir)
                             dst_path = os.path.join(target_dir, subdir)
 
@@ -46,14 +39,7 @@ for root, dirs, files in os.walk(source_dir):
                                 logging.info(f"Copied {src_path} to {dst_path}")
                             except Exception as e:
                                 logging.error(f"Failed to copy {src_path} to {dst_path}: {e}")
-                            break  # Break after finding the first valid HGT file
-
-        # Increment the count only if a valid HGT folder with matching *_detected_HGTs.txt was found
-        if has_hgt_subfolder:
-            count_hgt_folders += 1
-
-logging.info(f"\nProcessing {count_hgt_folders} number of samples.")
-
+                            break 
 
 
 def process_folder(folder_path):
@@ -66,15 +52,14 @@ def process_folder(folder_path):
     combined_fasta_suffix = "_combined_faa.fasta"
 
     for file_name in os.listdir(folder_path):
-        # Check for donor files
         if file_name.endswith(combined_fasta_suffix):
             file_path = os.path.join(folder_path, file_name)
-            logging.info(f"Processing donor file: {file_path}")
+            logging.info(f"Processing file: {file_path}")
             
             try:
                 output_file_name = file_name.replace(combined_fasta_suffix, '_prediction.txt')
                 output_file_path = os.path.join(folder_path, output_file_name)
-                command = f'blastp -query {file_path} -out {output_file_path} -num_threads 32 -db latent_ARGs_db -outfmt "10 qseqid sseqid qcovs pident length" -max_target_seqs 1'
+                command = f'blastp -query {file_path} -out {output_file_path} -num_threads 32 -db latent_ARGs_db -outfmt "6 qseqid sseqid qcovs pident length bitscore" -max_target_seqs 10'
                 subprocess.run(command, shell=True, check=True)
 
                 # Convert only the _prediction.txt files
@@ -83,14 +68,10 @@ def process_folder(folder_path):
                     convert_txt_to_csv(txt_output_file, output_file_path + ".csv")
 
             except subprocess.CalledProcessError as e:
-                logging.error(f"Error processing donor file {file_path}: {e}")
+                logging.error(f"Error processing file {file_path}: {e}")
 
         
 def convert_txt_to_csv(txt_file, csv_file):
-    """
-    Converts a comma-separated .txt file to a comma-separated .csv file.
-    Only processes files ending with '_prediction.txt'.
-    """
     try:
         with open(txt_file, 'r') as infile, open(csv_file, 'w', newline='') as outfile:
             reader = csv.reader(infile, delimiter=',')
@@ -102,54 +83,55 @@ def convert_txt_to_csv(txt_file, csv_file):
     except Exception as e:
         logging.error(f"Error converting {txt_file} to CSV: {e}")
 
+def filter_top_hits_per_file(csv_file):
+    df = pd.read_csv(csv_file, header=None, sep='\t')
+    df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
+
+    # Sort by query and bitscore (descending)
+    df_sorted = df.sort_values(by=['query', 'bitscore'], ascending=[True, False])
+
+    # Drop duplicates based on 'query', keeping the row with the highest bitscore
+    df_filtered = df_sorted.drop_duplicates(subset='query', keep='first')
+
+    return df_filtered
 
 def main():
     main_folder_path = "BLAST_allbins_latent"
 
+    dfs = []
+
+    # Process each folder
     for folder_name in os.listdir(main_folder_path):
         folder_path = os.path.join(main_folder_path, folder_name)
         if os.path.isdir(folder_path):
             process_folder(folder_path)
 
+    # Walk through the directory tree to find all prediction CSV files
+    for root, dirs, files in os.walk(main_folder_path):
+        for file in files:
+            if file.endswith('_prediction.txt.csv'):
+                file_path = os.path.join(root, file)
+                if os.path.getsize(file_path) > 0:
+                    # Filter each file to retain only the top BLAST hit based on bitscore
+                    df_filtered = filter_top_hits_per_file(file_path)
+                    dfs.append(df_filtered)
+                else:
+                    print(f"Skipping empty file: {file_path}")
+
+    # Concatenate all DataFrames into a single DataFrame
+    if dfs:
+        merged_df = pd.concat(dfs, ignore_index=True)
+        new_header = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
+        merged_df.columns = new_header
+
+        # Apply additional filters for identity and coverage
+        filtered_df = merged_df[(merged_df['identity%'] >= 90) & (merged_df['coverage%'] >= 20)]
+
+        output_file_path = os.path.join(main_folder_path, 'summary_BLAST_allbins_latent.csv')
+        filtered_df.to_csv(output_file_path, index=False)
+        print(f"Filtered summary CSV file saved to {output_file_path}")
+
 if __name__ == "__main__":
     main()
-
-
-
-# Read all CSV files into a single DataFrame
-folder_path = 'BLAST_allbins_latent'
-
-dfs = []
-# Walk through the directory tree to find all CSV files
-for root, dirs, files in os.walk(folder_path):
-    for file in files:
-        if file.endswith('_prediction.txt.csv'):
-            file_path = os.path.join(root, file)
-
-            # Check if the file is empty before reading
-            if os.path.getsize(file_path) > 0:
-                df = pd.read_csv(file_path, header=None)
-                dfs.append(df)
-            else:
-                print(f"Skipping empty file: {file_path}")
-
-
-
-# Concatenate all DataFrames into a single DataFrame
-merged_df = pd.concat(dfs, ignore_index=True)
-
-new_header=['query','target','coverage%','identity%','align_length']
-merged_df.columns = new_header
-
-output_file_path = os.path.join(folder_path, 'summary_BLAST_allbins_latent.csv')
-merged_df.to_csv(output_file_path, index=False)
-
-print(f"Summary CSV file saved to {output_file_path}")
-
-
-# Usage
-csv_file = 'BLAST_allbins_latent/summary_BLAST_allbins_latent.csv'
-hgt_files_folder = 'BLAST_allbins_latent'
-
 
 print(f'The pipeline has completed, go home and sleep!')
