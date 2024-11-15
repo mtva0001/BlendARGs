@@ -84,10 +84,6 @@ def process_folder(folder_path):
 
 
 def convert_txt_to_csv(txt_file, csv_file):
-    """
-    Converts a comma-separated .txt file to a comma-separated .csv file.
-    Only processes files ending with '_prediction.txt'.
-    """
     try:
         with open(txt_file, 'r') as infile, open(csv_file, 'w', newline='') as outfile:
             reader = csv.reader(infile, delimiter=',')
@@ -101,10 +97,7 @@ def convert_txt_to_csv(txt_file, csv_file):
 
 
 def filter_top_hits_per_file(csv_file):
-    """
-    Filters the BLAST result in each CSV file to keep only the top hit (highest bitscore) for each query.
-    """
-    df = pd.read_csv(csv_file, header=None)
+    df = pd.read_csv(csv_file, header=None, sep='\t')
     df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
 
     # Sort by query and bitscore (descending)
