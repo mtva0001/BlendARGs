@@ -3,8 +3,8 @@
 #!/bin/bash
 
 # Define file paths
-RF_CSV="./BLAST_allbins/summary_BLAST_allbins_RF_ARG.csv"
-Latent_CSV="./BLAST_allbins_latent/summary_BLAST_allbins_Latent_ARG.csv"
+RF_CSV="./BLAST_allbins/summary_BLAST_allbins_RF.csv"
+Latent_CSV="./BLAST_allbins_latent/summary_BLAST_allbins_latent.csv"
 RGI_CSV="./RGI_allbins/summary_RGI_allbins_ARG.csv"
 RF_FAA="ResFinder_FG_AA_fixed.faa"
 Latent_FAA="Latent_ARGs_AA.fasta"
