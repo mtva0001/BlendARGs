@@ -3,7 +3,7 @@
 import os
 import pandas as pd
 
-# Define the main path
+# Define the path to geNomad folder
 base_path = "result_BlendARGs/VirusIdentification/geNomad"
 
 # List to store the combined data
