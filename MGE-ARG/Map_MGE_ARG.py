@@ -9,6 +9,7 @@ query_file = "../BlendARGs/result_BlendARGs/VirusIdentification/geNomad/genomad_
 target_file = "./ARG_AA_summary.csv"
 final_output_file = "blastp_MGE_ARG_results.csv"
 
+
 # Read in query and target data
 query_df = pd.read_csv(query_file)
 target_df = pd.read_csv(target_file)
@@ -63,6 +64,18 @@ for sample in query_df['Sample'].unique():
         "-out", blast_output, "-outfmt", "6 qseqid sseqid qcovs pident length bitscore", "-max_target_seqs", "10"
     ])
 
+    # Check if the BLAST output file is empty or nonexistent
+    if not os.path.exists(blast_output) or os.stat(blast_output).st_size == 0:
+        print(f"No BLAST hits for sample {sample}. Skipping.")
+        os.remove(target_fasta)
+        os.remove(query_fasta)
+        # Optionally, remove the BLAST database files
+        for ext in [".phr", ".pin", ".psq"]:
+            db_file = f"{target_db}{ext}"
+            if os.path.exists(db_file):
+                os.remove(db_file)
+        continue
+
     # Load the BLAST output
     blast_df = pd.read_csv(blast_output, sep="\t", header=None)
     blast_df.columns = ['query', 'target', 'coverage%', 'identity%', 'align_length', 'bitscore']
@@ -71,8 +84,8 @@ for sample in query_df['Sample'].unique():
     blast_df = blast_df.sort_values(by=['query', 'bitscore'], ascending=[True, False])
     best_hits_df = blast_df.drop_duplicates(subset='query', keep='first')
 
-    # Apply the filter for identity >= 95% and coverage >= 80%
-    filtered_blast_df = best_hits_df[(best_hits_df["identity%"] >= 95) & (best_hits_df["coverage%"] >= 80)]
+    # Apply the filter for identity >= 95% and coverage >= 70%
+    filtered_blast_df = best_hits_df[(best_hits_df["identity%"] >= 95) & (best_hits_df["coverage%"] >= 70)]
     
     # Add sample information and store in all_results
     filtered_blast_df["Sample"] = sample
