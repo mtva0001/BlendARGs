@@ -1,4 +1,4 @@
-#This script outputs three summary files for plasmids, viruses and their protein sequences identified by geNomad.
+#This script outputs three summary files for plasmids, viruses (excluding proviruses!) and their protein sequences identified by geNomad.
 
 import os
 import pandas as pd
