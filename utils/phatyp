@@ -1,0 +1,1 @@
+phabox2 --task phatyp --contigs virus_sequences.fasta --len 1000 --outpth Ocean_phabox --dbdir phabox_db_v2
