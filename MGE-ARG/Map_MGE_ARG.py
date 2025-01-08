@@ -1,4 +1,4 @@
-# This script uses MGEs identified by geNomad and maps to the newly compailed db of detected ARGs.
+# This script uses MGEs identified by geNomad and maps to the newly compiled db of detected ARGs.
 
 import pandas as pd
 import subprocess
