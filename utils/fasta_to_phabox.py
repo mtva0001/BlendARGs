@@ -1,4 +1,4 @@
-#Taking the genomad_nucl_summary.csv to create a fasta file for PhaBox2 typing.
+#Taking the genomad_nucl_summary.csv to create a fasta file for PhaBOX v2.0 typing.
 import csv
 import sys
 
