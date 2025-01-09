@@ -12,7 +12,8 @@ Publicly available metagenomic data sets (Freshwater: [Buck et al. 2021](https:/
 5. Virus lifestyle predictions by [PhaBOX](https://phage.ee.cityu.edu.hk/)
 6. Site-wise mapping of MGEs with ARGs using BLASTp.
 
-![Workflow](https://github.com/user-attachments/assets/fd956282-2b0e-40c3-97ad-ae2824067cc7)
+![Workflow](https://github.com/user-attachments/assets/b2c080ca-f13e-407e-a3c3-420608e7b649)
+
 
 
 The results of the project are presented in our preprint: ....
