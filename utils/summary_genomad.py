@@ -1,4 +1,4 @@
-#This script outputs three summary files for plasmids, viruses (excluding proviruses!) and their protein sequences identified by geNomad.
+#This script outputs three summary files for plasmids, viruses and their protein sequences identified by geNomad.
 
 import os
 import pandas as pd
@@ -8,7 +8,6 @@ base_path = "result_BlendARGs/VirusIdentification/geNomad"
 
 # List to store the combined data
 data = []
-excluded_genes = set()  # Track excluded provirus genes
 
 # Loop through each sample folder in the base directory
 for sample_folder in os.listdir(base_path):
@@ -42,10 +41,7 @@ for sample_folder in os.listdir(base_path):
                         line = line.strip()
                         if line.startswith(">"):  # Header line
                             if gene:  # Save previous record if exists
-                                if "provirus" in gene:  # Track excluded provirus genes
-                                    excluded_genes.add(gene)
-                                else:
-                                    data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
+                                data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
                             
                             # Process the new header
                             header_parts = line[1:].split(" ", 1)
@@ -55,12 +51,9 @@ for sample_folder in os.listdir(base_path):
                         else:
                             sequence += line
                     
-                    # Append last entry if exists and not provirus
+                    # Append last entry if exists
                     if gene:
-                        if "provirus_" in gene:
-                            excluded_genes.add(gene)
-                        else:
-                            data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
+                        data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
 
 # Check if data was collected
 if not data:
@@ -105,9 +98,6 @@ for sample_folder in os.listdir(base_path):
                     # Read the .tsv file and reset index to keep 'gene' as a column
                     gene_df = pd.read_csv(gene_file_path, sep='\t').reset_index()
                     gene_df.columns = gene_df.columns.str.strip()
-
-                    # Exclude rows where 'gene' is in excluded_genes
-                    gene_df = gene_df[~gene_df['gene'].isin(excluded_genes)]
                 except Exception as e:
                     print(f"Error reading {gene_file_path}: {e}")
                     continue
