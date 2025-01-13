@@ -40,10 +40,7 @@ for sample_folder in os.listdir(base_path):
                         line = line.strip()
                         if line.startswith(">"):  # Header line
                             if gene:  # Save previous record if exists
-                                if "provirus" in gene:  # Track excluded provirus genes
-                                    excluded_genes.add(gene)
-                                else:
-                                    data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
+                                data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
                             
                             # Process the new header
                             header_parts = line[1:].split(" ", 1)
@@ -53,12 +50,9 @@ for sample_folder in os.listdir(base_path):
                         else:
                             sequence += line
                     
-                    # Append last entry if exists and not provirus
+                    # Append last entry if exists 
                     if gene:
-                        if "provirus_" in gene:
-                            excluded_genes.add(gene)
-                        else:
-                            data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
+                        data.append([gene, sequence.rstrip('*'), source_type, sample_name, contig_name])
 
 # Check if data was collected
 if not data:
