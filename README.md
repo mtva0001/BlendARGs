@@ -13,7 +13,8 @@ Publicly available metagenomic data sets (Freshwater: [Buck et al. 2021](https:/
 6. Site-wise mapping of MGEs with ARGs using BLASTp.
 
 
-[Flowchart.pdf](https://github.com/user-attachments/files/19350967/Flowchart.pdf)
+![Workflow](https://github.com/user-attachments/assets/4e07442e-f6d9-4667-900c-90e0645ed2e6)
+
 
 
 
