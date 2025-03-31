@@ -9,7 +9,7 @@ Publicly available metagenomic data sets (Freshwater: [Buck et al. 2021](https:/
    (b) using BLASTp against the [ResFinderFG2.0 database](https://github.com/RemiGSC/ResFinder_FG_Construction), and
    (c) using latent ARG database compiled by [Inda-Díaz et al. (2023)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-023-01479-0).
 4. Identification of mobile genetic elements (MGEs) with [geNomad](https://portal.nersc.gov/genomad/index.html) and calculation of their nucleotide-level genomic similarities with [FastANI](https://github.com/ParBLiSS/FastANI).
-5. Virus lifestyle predictions by [PhaBOX](https://phage.ee.cityu.edu.hk/)
+5. Virus lifestyle predictions was done by the PhaTYP module of [PhaBOX](https://phage.ee.cityu.edu.hk/)
 6. Site-wise mapping of MGEs with ARGs using BLASTp.
 
 
