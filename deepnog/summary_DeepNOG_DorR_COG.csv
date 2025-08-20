@@ -1,0 +1,200 @@
+ID,COG_ID,Value,DorR,HGT_identity,Category_code,Annotation,Category
+S0214_1_01381,COG0717,0.99999964,recipient,71.618,F,Deoxycytidine triphosphate deaminase,Nucleotide transport and metabolism
+S0214_1_01650,COG0468,1.0,recipient,71.618,L,RecA/RadA recombinase,"Replication, recombination and repair"
+S0216_15_00476,COG0717,0.99999964,donor,73.849,F,Deoxycytidine triphosphate deaminase,Nucleotide transport and metabolism
+S0216_25_00271,COG0468,1.0,donor,71.618,L,RecA/RadA recombinase,"Replication, recombination and repair"
+S0206_19_00910,,,donor,77.406,,,
+S0207_7_00482,,,recipient,77.406,,,
+S0039_4_00684,,,donor,76.923,,,
+S0041_2_00680,COG1363,1.0,donor,74.042,,,
+S0041_9_00169,COG0480,1.0,donor,74.885,J,"Translation elongation factor EF-G, a GTPase","Translation, ribosomal structure and biogenesis"
+S0043_8_02271,COG0480,1.0,recipient,74.885,J,"Translation elongation factor EF-G, a GTPase","Translation, ribosomal structure and biogenesis"
+S0043_9_01041,COG1363,1.0,recipient,76.923,,,
+S0043_9_01288,,,recipient,76.923,,,
+S0011_45_00956,COG0254,1.0,donor,100.0,J,Ribosomal protein L31,"Translation, ribosomal structure and biogenesis"
+S0011_6_01061,COG0778,0.99991703,donor,100.0,C,Nitroreductase,Energy production and conversion
+S0012_1_00262,COG2076,0.99999857,donor,100.0,V,Multidrug transporter EmrE and related cation transporters,Defense mechanisms
+S0013_62_01470,,,donor,100.0,,,
+S0011_45_00812,,,donor,100.0,,,
+S0011_47_00617,COG2076,0.99999857,recipient,100.0,V,Multidrug transporter EmrE and related cation transporters,Defense mechanisms
+S0012_18_00828,COG0778,0.99991703,recipient,100.0,C,Nitroreductase,Energy production and conversion
+S0013_15_00941,COG0254,1.0,recipient,100.0,J,Ribosomal protein L31,"Translation, ribosomal structure and biogenesis"
+S0222_15_01566,COG1126,0.9960145,donor,72.16,E,"ABC-type polar amino acid transport system, ATPase component",Amino acid transport and metabolism
+S0220_16_00483,,,recipient,72.16,,,
+S0239_24_00988,COG2236,1.0,donor,87.549,H,Hypoxanthine phosphoribosyltransferase,Coenzyme transport and metabolism
+S0239_27_00030,,,recipient,84.524,,,
+S0240_12_01384,COG1045,1.0,recipient,100.0,E,Serine acetyltransferase,Amino acid transport and metabolism
+S0240_13_00047,COG1595,0.99596703,donor,100.0,K,"DNA-directed RNA polymerase specialized sigma subunit, sigma24 family",Transcription
+S0240_13_01076,COG0251,0.9999999,donor,100.0,V,"Enamine deaminase RidA, house cleaning of reactive enamine intermediates, YjgF/YER057c/UK114 family",Defense mechanisms
+S0240_16_00823,COG0105,1.0,recipient,87.549,F,Nucleoside diphosphate kinase,Nucleotide transport and metabolism
+S0240_16_01029,COG0543,0.99986064,recipient,87.549,,,
+S0240_51_01123,COG3173,0.9997203,recipient,100.0,R,"Predicted  kinase, aminoglycoside phosphotransferase (APT) family",General function prediction only
+S0241_27_02848,COG1960,1.0,recipient,100.0,I,Acyl-CoA dehydrogenase related to the alkylation response protein AidB,Lipid transport and metabolism
+S0241_6_00700,COG1596,1.0,recipient,100.0,M,"Periplasmic protein involved in polysaccharide export, contains SLBB domain of the beta-grasp fold",Cell wall/membrane/envelope biogenesis
+S0241_6_01317,COG2963,0.9999536,recipient,100.0,X,Transposase and inactivated derivatives,"Mobilome: prophages, transposons"
+S0241_6_02699,,,recipient,100.0,,,
+S0242_14_02114,COG2171,1.0,donor,100.0,E,Tetrahydrodipicolinate N-succinyltransferase,Amino acid transport and metabolism
+S0242_22_02480,COG1185,1.0,recipient,100.0,J,Polyribonucleotide nucleotidyltransferase (polynucleotide phosphorylase),"Translation, ribosomal structure and biogenesis"
+S0242_22_02485,COG0195,1.0,recipient,100.0,K,"Transcription antitermination factor NusA, contains S1 and KH domains",Transcription
+S0242_28_00266,COG1146,0.9999994,recipient,100.0,F,"NAD-dependent dihydropyrimidine dehydrogenase, PreA subunit",Nucleotide transport and metabolism
+S0242_32_00020,COG0848,0.9999963,donor,100.0,U,Biopolymer transport protein ExbD,"Intracellular trafficking, secretion, and vesicular transport"
+S0242_32_00021,COG1040,0.9925689,donor,100.0,R,Predicted amidophosphoribosyltransferases,General function prediction only
+S0242_6_00101,COG0822,0.9999999,recipient,79.452,O,NifU homolog involved in Fe-S cluster formation,"Posttranslational modification, protein turnover, chaperones"
+S0243_10_01030,COG3464,0.9999987,recipient,100.0,X,Transposase,"Mobilome: prophages, transposons"
+S0243_16_00580,COG1217,1.0,recipient,78.977,T,Predicted membrane GTPase involved in stress response,Signal transduction mechanisms
+S0243_36_00918,COG2133,0.9954705,recipient,100.0,G,"Glucose/arabinose dehydrogenase, beta-propeller fold",Carbohydrate transport and metabolism
+S0243_36_01271,COG2050,0.999949,recipient,100.0,Q,"Acyl-coenzyme A thioesterase PaaI, contains HGG motif","Secondary metabolites biosynthesis, transport and catabolism"
+S0243_36_01388,COG0745,0.9999999,recipient,100.0,,,
+S0239_24_00073,COG1217,1.0,donor,87.549,T,Predicted membrane GTPase involved in stress response,Signal transduction mechanisms
+S0239_24_00610,COG0822,1.0,donor,87.549,O,NifU homolog involved in Fe-S cluster formation,"Posttranslational modification, protein turnover, chaperones"
+S0239_24_00728,COG0543,0.9994211,donor,87.549,,,
+S0239_29_00575,COG0105,1.0,donor,89.202,F,Nucleoside diphosphate kinase,Nucleotide transport and metabolism
+S0240_12_00122,,,recipient,100.0,,,
+S0240_12_01258,COG2963,0.99995375,recipient,100.0,X,Transposase and inactivated derivatives,"Mobilome: prophages, transposons"
+S0240_13_00165,COG1040,0.9925689,donor,100.0,R,Predicted amidophosphoribosyltransferases,General function prediction only
+S0240_13_00166,COG0848,0.9999962,donor,100.0,U,Biopolymer transport protein ExbD,"Intracellular trafficking, secretion, and vesicular transport"
+S0240_16_01469,COG1596,1.0,recipient,87.549,M,"Periplasmic protein involved in polysaccharide export, contains SLBB domain of the beta-grasp fold",Cell wall/membrane/envelope biogenesis
+S0240_35_00845,COG0745,0.9999999,donor,100.0,,,
+S0240_51_01125,COG1960,1.0,recipient,100.0,I,Acyl-CoA dehydrogenase related to the alkylation response protein AidB,Lipid transport and metabolism
+S0240_51_01758,COG2171,1.0,recipient,100.0,E,Tetrahydrodipicolinate N-succinyltransferase,Amino acid transport and metabolism
+S0241_11_00780,COG2050,0.999949,donor,100.0,Q,"Acyl-coenzyme A thioesterase PaaI, contains HGG motif","Secondary metabolites biosynthesis, transport and catabolism"
+S0241_27_03851,COG0195,1.0,recipient,100.0,K,"Transcription antitermination factor NusA, contains S1 and KH domains",Transcription
+S0241_27_03856,COG1185,1.0,recipient,100.0,J,Polyribonucleotide nucleotidyltransferase (polynucleotide phosphorylase),"Translation, ribosomal structure and biogenesis"
+S0241_6_02706,COG2133,0.9954705,recipient,100.0,G,"Glucose/arabinose dehydrogenase, beta-propeller fold",Carbohydrate transport and metabolism
+S0241_9_00054,,,donor,84.524,,,
+S0242_11_00833,COG2236,1.0,donor,79.892,H,Hypoxanthine phosphoribosyltransferase,Coenzyme transport and metabolism
+S0242_14_01338,COG3173,0.9997203,donor,100.0,R,"Predicted  kinase, aminoglycoside phosphotransferase (APT) family",General function prediction only
+S0242_18_02171,COG1045,1.0,donor,100.0,E,Serine acetyltransferase,Amino acid transport and metabolism
+S0242_32_01261,COG0251,0.9999999,donor,100.0,V,"Enamine deaminase RidA, house cleaning of reactive enamine intermediates, YjgF/YER057c/UK114 family",Defense mechanisms
+S0242_32_01798,COG1595,0.99596703,donor,100.0,K,"DNA-directed RNA polymerase specialized sigma subunit, sigma24 family",Transcription
+S0242_32_02392,COG3464,0.9999987,donor,100.0,X,Transposase,"Mobilome: prophages, transposons"
+S0243_33_00766,COG1146,0.9999994,donor,100.0,F,"NAD-dependent dihydropyrimidine dehydrogenase, PreA subunit",Nucleotide transport and metabolism
+S0233_7_00228,,,donor,99.8,,,
+S0235_5_00251,,,donor,70.994,,,
+S0231_11_00067,,,recipient,99.8,,,
+S0231_23_01585,,,recipient,70.994,,,
+S0147_24_00592,,,donor,100.0,,,
+S0147_24_00593,,,donor,100.0,,,
+S0148_29_00698,,,recipient,100.0,,,
+S0148_29_00699,,,recipient,100.0,,,
+S0029_44_00042,,,donor,99.808,,,
+S0029_44_00043,,,donor,99.808,,,
+S0030_9_00552,COG0231,1.0,donor,99.821,J,Translation elongation factor P (EF-P)/translation initiation factor 5A (eIF-5A),"Translation, ribosomal structure and biogenesis"
+S0030_9_00560,COG0341,1.0,donor,99.821,U,Preprotein translocase subunit SecF,"Intracellular trafficking, secretion, and vesicular transport"
+S0032_1_00317,COG0156,1.0,donor,99.595,H,7-keto-8-aminopelargonate synthetase or related enzyme,Coenzyme transport and metabolism
+S0032_1_00761,COG0440,1.0,donor,99.595,E,"Acetolactate synthase, small subunit",Amino acid transport and metabolism
+S0032_27_00127,COG2239,1.0,donor,99.253,P,Mg/Co/Ni transporter MgtE (contains CBS domain),Inorganic ion transport and metabolism
+S0027_17_01282,,,recipient,99.808,,,
+S0027_17_01283,,,recipient,99.808,,,
+S0027_1_00777,COG2239,1.0,recipient,99.253,P,Mg/Co/Ni transporter MgtE (contains CBS domain),Inorganic ion transport and metabolism
+S0029_1_00564,COG0156,1.0,recipient,99.595,H,7-keto-8-aminopelargonate synthetase or related enzyme,Coenzyme transport and metabolism
+S0029_1_00606,COG0440,1.0,recipient,99.595,E,"Acetolactate synthase, small subunit",Amino acid transport and metabolism
+S0031_3_00831,COG0341,1.0,recipient,99.821,U,Preprotein translocase subunit SecF,"Intracellular trafficking, secretion, and vesicular transport"
+S0031_3_00840,COG0231,1.0,recipient,99.821,J,Translation elongation factor P (EF-P)/translation initiation factor 5A (eIF-5A),"Translation, ribosomal structure and biogenesis"
+S0158_13_00561,,,donor,100.0,,,
+S0160_29_00216,,,donor,100.0,,,
+S0160_42_00198,,,donor,100.0,,,
+S0158_14_00979,,,recipient,100.0,,,
+S0159_6_01253,,,recipient,100.0,,,
+S0294_20_01655,,,recipient,76.442,,,
+S0295_17_00276,COG1960,1.0,recipient,100.0,I,Acyl-CoA dehydrogenase related to the alkylation response protein AidB,Lipid transport and metabolism
+S0295_33_00466,,,recipient,100.0,,,
+S0296_16_00462,,,donor,100.0,,,
+S0297_1_00040,COG0074,1.0,recipient,79.68,C,"Succinyl-CoA synthetase, alpha subunit",Energy production and conversion
+S0297_24_00005,,,recipient,77.726,,,
+S0294_20_00446,,,recipient,76.442,,,
+S0294_5_00074,COG0074,1.0,donor,79.68,C,"Succinyl-CoA synthetase, alpha subunit",Energy production and conversion
+S0295_17_00277,COG0340,0.9913229,recipient,100.0,H,Biotin-(acetyl-CoA carboxylase) ligase,Coenzyme transport and metabolism
+S0296_16_00461,COG1960,1.0,donor,100.0,I,Acyl-CoA dehydrogenase related to the alkylation response protein AidB,Lipid transport and metabolism
+S0297_26_00422,,,donor,76.442,,,
+S0297_34_00092,,,donor,100.0,,,
+S0218_7_00398,COG0735,1.0,donor,81.22,P,Fe2+ or Zn2+ uptake regulation protein,Inorganic ion transport and metabolism
+S0218_7_00399,,,donor,81.22,,,
+S0218_7_00751,,,donor,81.22,,,
+S0219_1_00127,,,recipient,81.22,,,
+S0219_1_00466,,,recipient,81.22,,,
+S0219_1_00467,COG0735,1.0,recipient,81.22,P,Fe2+ or Zn2+ uptake regulation protein,Inorganic ion transport and metabolism
+S0152_13_02419,,,donor,74.552,,,
+S0152_17_00091,COG1347,1.0,donor,79.084,C,"Na+-transporting NADH:ubiquinone oxidoreductase, subunit NqrD",Energy production and conversion
+S0152_17_00685,COG0492,1.0,donor,79.084,O,Thioredoxin reductase,"Posttranslational modification, protein turnover, chaperones"
+S0152_18_00123,COG0114,1.0,donor,74.34,C,Fumarate hydratase class II,Energy production and conversion
+S0152_18_00654,,,donor,74.34,,,
+S0154_16_00547,COG0648,1.0,donor,99.407,L,Endonuclease IV,"Replication, recombination and repair"
+S0154_8_00842,,,donor,100.0,,,
+S0155_13_00302,COG0100,1.0,donor,68.59,J,Ribosomal protein S11,"Translation, ribosomal structure and biogenesis"
+S0155_21_00931,,,recipient,79.084,,,
+S0155_21_00933,COG1024,1.0,recipient,79.084,I,Enoyl-CoA hydratase/carnithine racemase,Lipid transport and metabolism
+S0155_21_01144,COG1960,0.9999999,recipient,79.084,I,Acyl-CoA dehydrogenase related to the alkylation response protein AidB,Lipid transport and metabolism
+S0152_17_00115,COG1024,1.0,donor,79.084,I,Enoyl-CoA hydratase/carnithine racemase,Lipid transport and metabolism
+S0152_17_00439,,,donor,79.084,,,
+S0152_6_00066,COG1960,1.0,recipient,81.225,I,Acyl-CoA dehydrogenase related to the alkylation response protein AidB,Lipid transport and metabolism
+S0153_18_00395,,,recipient,100.0,,,
+S0155_21_00241,COG1347,1.0,recipient,79.084,C,"Na+-transporting NADH:ubiquinone oxidoreductase, subunit NqrD",Energy production and conversion
+S0155_21_00360,COG0114,1.0,recipient,79.084,C,Fumarate hydratase class II,Energy production and conversion
+S0155_21_00769,,,recipient,79.084,,,
+S0155_21_01171,COG0492,0.99999976,recipient,79.084,O,Thioredoxin reductase,"Posttranslational modification, protein turnover, chaperones"
+S0155_22_00674,COG0648,1.0,recipient,99.407,L,Endonuclease IV,"Replication, recombination and repair"
+S0155_8_00191,,,recipient,74.552,,,
+S0156_4_01289,COG0100,1.0,recipient,68.59,J,Ribosomal protein S11,"Translation, ribosomal structure and biogenesis"
+S0171_4_00158,,,recipient,84.375,,,
+S0172_11_01037,,,recipient,73.611,,,
+S0168_3_00779,,,donor,73.611,,,
+S0168_8_00271,,,donor,84.375,,,
+S0285_14_00925,,,donor,99.806,,,
+S0286_11_00414,COG1853,0.9999865,donor,99.691,C,"NADH-FMN oxidoreductase RutF, flavin reductase (DIM6/NTAB) family",Energy production and conversion
+S0286_11_01259,31CJR,1.0,donor,99.691,,,
+S0283_7_00574,31CJR,1.0,recipient,99.691,,,
+S0284_9_00833,,,recipient,99.806,,,
+S0284_9_01093,COG1853,0.9999864,recipient,99.806,C,"NADH-FMN oxidoreductase RutF, flavin reductase (DIM6/NTAB) family",Energy production and conversion
+S0021_25_00435,COG0030,1.0,recipient,100.0,J,16S rRNA A1518 and A1519 N6-dimethyltransferase RsmA/KsgA/DIM1 (may also have DNA glycosylase/AP lyase activity),"Translation, ribosomal structure and biogenesis"
+S0025_14_00546,COG0842,0.99740595,recipient,99.844,V,"ABC-type multidrug transport system, permease component",Defense mechanisms
+S0023_21_00978,COG0030,1.0,donor,100.0,J,16S rRNA A1518 and A1519 N6-dimethyltransferase RsmA/KsgA/DIM1 (may also have DNA glycosylase/AP lyase activity),"Translation, ribosomal structure and biogenesis"
+S0023_25_00044,COG0842,0.99740595,donor,99.844,V,"ABC-type multidrug transport system, permease component",Defense mechanisms
+S0244_7_00875,COG1126,1.0,donor,79.653,E,"ABC-type polar amino acid transport system, ATPase component",Amino acid transport and metabolism
+S0247_21_01340,COG0100,1.0,donor,77.546,J,Ribosomal protein S11,"Translation, ribosomal structure and biogenesis"
+S0248_15_01119,,,donor,100.0,,,
+S0248_17_00570,COG0185,1.0,donor,77.165,J,Ribosomal protein S19,"Translation, ribosomal structure and biogenesis"
+S0250_5_01451,COG3788,0.9999999,donor,100.0,S,"Uncharacterized membrane protein YecN, MAPEG domain",Function unknown
+S0250_5_01634,,,donor,100.0,,,
+S0244_16_00722,COG0100,1.0,recipient,77.546,J,Ribosomal protein S11,"Translation, ribosomal structure and biogenesis"
+S0247_21_00556,,,donor,77.546,,,
+S0247_2_00529,,,recipient,100.0,,,
+S0247_2_01311,COG3788,0.9999999,recipient,100.0,S,"Uncharacterized membrane protein YecN, MAPEG domain",Function unknown
+S0250_21_00137,COG0185,1.0,recipient,77.165,J,Ribosomal protein S19,"Translation, ribosomal structure and biogenesis"
+S0250_6_00492,COG1126,1.0,recipient,79.653,E,"ABC-type polar amino acid transport system, ATPase component",Amino acid transport and metabolism
+S0163_5_00402,COG0236,0.9999999,recipient,77.5,,,
+S0164_8_00755,33BK2,0.9971981,recipient,83.004,,,
+S0164_8_00788,COG0268,0.99991214,recipient,83.004,J,Ribosomal protein S20,"Translation, ribosomal structure and biogenesis"
+S0165_25_00359,COG0236,0.9999999,recipient,84.848,,,
+S0167_10_00097,,,recipient,77.973,,,
+S0167_10_00158,,,recipient,77.973,,,
+S0163_24_00246,COG0236,0.9999999,donor,84.848,,,
+S0163_32_00334,,,donor,77.973,,,
+S0163_36_00280,,,donor,79.039,,,
+S0163_3_00569,COG0268,1.0,donor,83.004,J,Ribosomal protein S20,"Translation, ribosomal structure and biogenesis"
+S0163_3_01539,33BK2,0.9997181,donor,83.004,,,
+S0166_3_00072,COG0236,0.99998415,donor,77.5,,,
+S0002_3_00883,COG2050,0.99993753,donor,100.0,Q,"Acyl-coenzyme A thioesterase PaaI, contains HGG motif","Secondary metabolites biosynthesis, transport and catabolism"
+S0003_49_00703,,,donor,100.0,,,
+S0003_57_00233,COG1175,1.0,donor,100.0,G,"ABC-type sugar transport system, permease component",Carbohydrate transport and metabolism
+S0004_26_00838,,,donor,99.837,,,
+S0004_37_01166,COG0524,0.99999976,donor,99.892,G,"Sugar or nucleoside kinase, ribokinase family",Carbohydrate transport and metabolism
+S0004_57_01720,,,donor,100.0,,,
+S0004_5_00997,,,donor,100.0,,,
+S0005_49_00693,COG3842,0.9998784,donor,100.0,E,"ABC-type Fe3+/spermidine/putrescine transport systems, ATPase components",Amino acid transport and metabolism
+S0005_58_00323,,,donor,99.759,,,
+S0005_8_00263,COG5285,0.9999219,donor,100.0,Q,"Ectoine hydroxylase-related dioxygenase, phytanoyl-CoA dioxygenase (PhyH) family","Secondary metabolites biosynthesis, transport and catabolism"
+S0006_24_00935,,,donor,99.527,,,
+S0002_20_00521,,,recipient,99.759,,,
+S0002_60_00291,COG3842,0.99999225,recipient,100.0,E,"ABC-type Fe3+/spermidine/putrescine transport systems, ATPase components",Amino acid transport and metabolism
+S0003_11_00518,,,recipient,99.527,,,
+S0003_7_00078,COG4798,0.9996276,recipient,99.837,R,Predicted methyltransferase,General function prediction only
+S0003_8_00502,,,recipient,100.0,,,
+S0003_9_02772,COG5285,0.9999219,recipient,100.0,Q,"Ectoine hydroxylase-related dioxygenase, phytanoyl-CoA dioxygenase (PhyH) family","Secondary metabolites biosynthesis, transport and catabolism"
+S0005_19_00609,COG0524,0.99999976,recipient,99.892,G,"Sugar or nucleoside kinase, ribokinase family",Carbohydrate transport and metabolism
+S0005_27_01307,,,recipient,99.831,,,
+S0005_3_00905,,,recipient,100.0,,,
+S0005_3_00906,COG2050,0.99993765,recipient,100.0,Q,"Acyl-coenzyme A thioesterase PaaI, contains HGG motif","Secondary metabolites biosynthesis, transport and catabolism"
+S0006_17_00503,COG1175,1.0,recipient,100.0,G,"ABC-type sugar transport system, permease component",Carbohydrate transport and metabolism
+S0036_12_00586,,,recipient,79.397,,,
+S0035_14_00032,,,donor,79.397,,,
