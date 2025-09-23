@@ -987,10 +987,6 @@ latent_lakes_all <- latent_lakes_all %>%
   separate_rows(Class.1, sep = ", ")
 
 
-#checking overlaps
-Lakes_ARG_overlap=rbind(rgi_lakes_all, rf_lakes_all, latent_lakes_all)
-#
-
 rgi_lakes_all=rgi_lakes_all[,c("ORF_ID", "tax_bin", "Drug.Class", "Method", "ID")]
 rgi_lakes_all= merge(rgi_lakes_all, lakes_tax_meta_depth, by.x="tax_bin", by.y="bin")
 rf_lakes_all= merge(rf_lakes_all, lakes_tax_meta_depth, by.x="tax_bin", by.y="bin")
@@ -1163,7 +1159,46 @@ ggarrange(upper_plot, Marine_ARG_plot, ncol = 1, common.legend = F, heights = c(
 
 ggsave("allARGs_Depth.pdf", dpi=600, width = 12, height = 13, bg='white', device = cairo_pdf)
 
-write.csv(rbind(Marine_ARG, Lakes_ARG),"/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/ARG.csv")
+
+### This is just to append the list of ARGs with the proper gene names
+### Load the input files again before running this script below:
+Marine_ARG_c <- Marine_ARG %>% mutate(ARG = as.character(ARG))
+Lakes_ARG_c <- Lakes_ARG %>% mutate(ARG = as.character(ARG))
+
+map_rgi <- bind_rows(
+  rgi_m_all %>% select(ID, ARG_ID = Best_Hit_ARO),
+  rgi_lakes_all %>% select(ID, ARG_ID = Best_Hit_ARO)
+) %>% filter(!is.na(ID)) %>% mutate(ID = as.character(ID)) %>%
+  distinct(ID, .keep_all = TRUE)
+
+map_rf <- bind_rows(
+  rf_m_all %>% select(ID, ARG_ID = ARG),
+  rf_lakes_all %>% select(ID, ARG_ID = ARG)
+) %>% filter(!is.na(ID)) %>% mutate(ID = as.character(ID)) %>%
+  distinct(ID, .keep_all = TRUE)
+
+map_latent <- bind_rows(
+  latent_m_all %>% select(ID = target, ARG_ID = ARG),
+  latent_lakes_all %>% select(ID = target, ARG_ID = ARG)
+) %>% filter(!is.na(ID)) %>% mutate(ID = as.character(ID)) %>%
+  distinct(ID, .keep_all = TRUE)
+
+lookup <- bind_rows(map_rgi, map_rf, map_latent)
+
+dups <- lookup %>% group_by(ID) %>% filter(n() > 1) %>% distinct(ID) %>% pull(ID)
+if(length(dups) > 0) {
+  stop("Found ID(s) present in multiple reference sources: ",
+       paste(head(dups, 20), collapse = ", "),
+       ". Each ARG should exist in only one reference df. Inspect these IDs.")
+}
+
+# safe one-to-one join
+full_ARG_M <- Marine_ARG_c %>% left_join(lookup, by = c("ARG" = "ID"))
+full_ARG_L <- Lakes_ARG_c %>% left_join(lookup, by = c("ARG" = "ID"))
+
+write.csv(rbind(full_ARG_M, full_ARG_L),"/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/ARG_full.csv")
+
+
 
 
 # Summary table data (unique ARGs per dataset):
@@ -1191,7 +1226,7 @@ arg_multiple_methods_L <- Lakes_ARG %>%
   summarise(n_methods = n_distinct(Method)) %>%
   filter(n_methods > 1)
 
-arg_multiple_d_methods_L <- Lakes_ARG %>%
+arg_multiple_d_methods_L <- Lakes_ARG %>% #empty df = no overlapping ARGs in Freshwater data
   semi_join(arg_multiple_methods_L, by = "ORF_ID")
 
 
@@ -1817,6 +1852,19 @@ plasmid_L_meta <- plasmid_L_meta %>%
                                      levels = c("No conjugation gene", 
                                                 "Single conjugation gene", 
                                                 "Multiple conjugation genes")))
+
+
+percentages_conj <- plasmid_M_meta %>%
+  count(conjugation_status) %>%
+  mutate(percentage = n / sum(n) * 100)
+
+percentages_conj
+
+percentages_conj <- plasmid_L_meta %>%
+  count(conjugation_status) %>%
+  mutate(percentage = n / sum(n) * 100)
+
+percentages_conj
 
 
 plasmid_L_meta$group=factor(plasmid_L_meta$group, levels = legend_stress)
