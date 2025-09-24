@@ -1853,7 +1853,15 @@ plasmid_L_meta <- plasmid_L_meta %>%
                                                 "Single conjugation gene", 
                                                 "Multiple conjugation genes")))
 
+#Plasmid sizes
+median(plasmid_M_meta$length)
+median(plasmid_L_meta$length)
+min(plasmid_M_meta$length)
+min(plasmid_L_meta$length)
+max(plasmid_M_meta$length)
+max(plasmid_L_meta$length)
 
+#Fraction of plasmids with conjugation genes
 percentages_conj <- plasmid_M_meta %>%
   count(conjugation_status) %>%
   mutate(percentage = n / sum(n) * 100)
@@ -1866,7 +1874,7 @@ percentages_conj <- plasmid_L_meta %>%
 
 percentages_conj
 
-
+#Plot size distribution
 plasmid_L_meta$group=factor(plasmid_L_meta$group, levels = legend_stress)
 plasmid_M_meta$group=factor(plasmid_M_meta$group, levels = legend_stress)
 
