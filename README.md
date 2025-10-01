@@ -7,7 +7,7 @@ Publicly available metagenomic data (Freshwater: [Buck et al. 2021](https://www.
 3. The identification of ARGs by using:
    (a) [RGI](https://github.com/arpcard/rgi) tool with the CARD database,
    (b) BLASTp against the [ResFinderFG2.0 database](https://github.com/RemiGSC/ResFinder_FG_Construction), and
-   (c) latent ARG database compiled by [Salvador et al. (2023)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-023-01479-0).
+   (c) latent ARG database compiled by [Inda-Diaz et al. (2023)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-023-01479-0).
 4. Identification of mobile genetic elements (MGEs) with [geNomad](https://portal.nersc.gov/genomad/index.html) and calculation of their nucleotide-level genomic similarities with [FastANI](https://github.com/ParBLiSS/FastANI).
 5. Virus lifestyle predictions was done with the PhaTYP module of [PhaBOX](https://phage.ee.cityu.edu.hk/).
 6. Site-wise linking of MGEs with MAG-ARGs using BLASTp.
