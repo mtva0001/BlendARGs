@@ -20,7 +20,6 @@ library(stringr)
 library(rstatix)
 library(gsw)
 
-
 ##### World map #####
 # Marine data
 metaM=read_xlsx("/Users/matev/Documents/Research/Chalmers/BlendARGs/Geotraces_filtered_metadata.xlsx") #for the coordinates
@@ -1199,8 +1198,6 @@ full_ARG_L <- Lakes_ARG_c %>% left_join(lookup, by = c("ARG" = "ID"))
 write.csv(rbind(full_ARG_M, full_ARG_L),"/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/ARG_full.csv")
 
 
-
-
 # Summary table data (unique ARGs per dataset):
 length(unique(rgi_lakes_all$ARG))
 length(unique(rgi_m_all$ARG))
@@ -1421,13 +1418,13 @@ vir_size_L=ggplot(vir_L_meta_f, aes(x=fct_rev(Phylum), y=length/1000, color=grou
   geom_point(position = position_dodge(0.8), size=1, stroke=0.5, alpha=0.8, show.legend = TRUE)+
   scale_color_viridis_d(drop=FALSE, option = "turbo", breaks=legend_stress, "Sampling location")+
   theme_linedraw(12)+
-  geom_abline(intercept = 5, slope = 0, lty=2)+
+  geom_abline(intercept = 3, slope = 0, lty=2)+
   coord_flip()+
   theme(panel.grid = element_line(color='#f2f2f2'),
         legend.key.size = unit(0.5, 'cm'),
         plot.margin = margin(9,1,5.5,1, unit = "pt"))+
   xlab('Phylum')+ylab("Length of viral contigs (kb)")+
-  labs(tag=expression(bold(a)), subtitle = expression(bold("Freshwater environments")))+
+  labs(subtitle = expression(bold("Freshwater environments")))+
   guides(color=guide_legend(ncol=3, override.aes = list(size=3)))
 
 
@@ -1435,13 +1432,13 @@ vir_size_M=ggplot(vir_M_meta_f, aes(x=fct_rev(Phylum), y=length/1000, color=grou
   geom_point(position = position_dodge(0.8), size=1, stroke=0.5, alpha=0.8, show.legend = TRUE)+
   scale_color_viridis_d(drop=FALSE, option = "turbo", breaks=legend_stress, "Sampling location")+
   theme_linedraw(12)+
-  geom_abline(intercept = 5, slope = 0, lty=2)+
+  geom_abline(intercept = 3, slope = 0, lty=2)+
   coord_flip()+
   theme(panel.grid = element_line(color='#f2f2f2'),
         legend.key.size = unit(0.5, 'cm'),
         plot.margin = margin(9,1,5.5,1, unit = "pt"))+
   xlab('')+ylab("Length of viral contigs (kb)")+
-  labs(tag=expression(bold(b)), subtitle = expression(bold("Marine environments")))+
+  labs(subtitle = expression(bold("Marine environments")))+
   guides(color=guide_legend(ncol=3, override.aes = list(size=3)))
 
 ggarrange(vir_size_L, vir_size_M, legend = "right", ncol = 2, common.legend = T)
@@ -1853,15 +1850,7 @@ plasmid_L_meta <- plasmid_L_meta %>%
                                                 "Single conjugation gene", 
                                                 "Multiple conjugation genes")))
 
-#Plasmid sizes
-median(plasmid_M_meta$length)
-median(plasmid_L_meta$length)
-min(plasmid_M_meta$length)
-min(plasmid_L_meta$length)
-max(plasmid_M_meta$length)
-max(plasmid_L_meta$length)
 
-#Fraction of plasmids with conjugation genes
 percentages_conj <- plasmid_M_meta %>%
   count(conjugation_status) %>%
   mutate(percentage = n / sum(n) * 100)
@@ -1874,7 +1863,7 @@ percentages_conj <- plasmid_L_meta %>%
 
 percentages_conj
 
-#Plot size distribution
+
 plasmid_L_meta$group=factor(plasmid_L_meta$group, levels = legend_stress)
 plasmid_M_meta$group=factor(plasmid_M_meta$group, levels = legend_stress)
 
@@ -1888,7 +1877,7 @@ plasmid_size_L=ggplot(plasmid_L_meta, aes(x=conjugation_status, y=log10(length/1
         plot.margin = margin(5,8,1,5, unit = "pt"),
         axis.title = element_text(size=12))+
   xlab('')+ylab(expression("Length of plasmid contigs log"[10] * "(kb)"))+
-  labs(tag=expression(bold(a)), subtitle = expression(bold("Freshwater environments")))+
+  labs(subtitle = expression(bold("Freshwater environments")))+
   guides(color=guide_legend(ncol=4, override.aes = list(size=3)))
 
 
@@ -1903,13 +1892,74 @@ plasmid_size_M=ggplot(plasmid_M_meta, aes(x=conjugation_status, y=log10(length/1
         plot.margin = margin(5,8,1,5, unit = "pt"),
         axis.title = element_text(size=12))+
   xlab('')+ylab(expression("Length of plasmid contigs log"[10] * "(kb)"))+
-  labs(tag=expression(bold(b)), subtitle = expression(bold("Marine environments")))+
+  labs(subtitle = expression(bold("Marine environments")))+
   guides(color=guide_legend(ncol=4, override.aes = list(size=3)))
 
 ggarrange(plasmid_size_L, plasmid_size_M, legend = "right", ncol = 2, common.legend = T, align = "v")
 
-ggsave("plasmid_size.pdf", dpi=600, width = 12, height = 5, bg='white', device = cairo_pdf)
+ggsave("plasmid_size.png", dpi=600, width = 12, height = 5, bg='white', device = ragg::agg_png)
 
+
+counts_plasm_M <- plasmid_M_meta %>%
+  group_by(group, geo_loc_name, `Depth (m)`, conjugation_status) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+counts_plasm_L <- plasmid_L_meta %>%
+  group_by(group, environment..feature., geographic.location..depth., conjugation_status) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+
+size_legend_plasm=range(c(counts_plasm_L$count, counts_plasm_M$count))
+
+Marine_plasm_plot=ggplot(counts_plasm_M, aes(x = `Depth (m)`, y=conjugation_status, size = count, color = group)) +
+  geom_point(alpha=0.8, shape=16, stroke=0.5, position =position_dodge(.5), show.legend = T)+
+  theme_linedraw(base_size = 10) +
+  coord_flip()+
+  scale_x_reverse(breaks = int_breaks)+
+  scale_y_discrete(labels = label_wrap_gen(18))+
+  facet_nested_wrap(~geo_loc_name, scales = "free_y", nrow = 3, ncol = 2, labeller = as_labeller(marine_label))+
+  labs(x = "Depth (m)", title = "Marine environments") +
+  theme(legend.position = "right",
+        axis.title.x = element_blank(),
+        legend.key.size = unit(0.5, 'cm'),
+        legend.spacing = unit(0.01, 'cm'),
+        strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
+        panel.grid = element_line(color='#f2f2f2'),
+        axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) +
+  scale_size_continuous(range = c(1,10), breaks=c(1,10,100, 1000, 10000), limits = size_legend_plasm)+
+  scale_color_viridis_d(drop=FALSE, option = "turbo", breaks=legend_stress, "Sampling location")+
+  guides(size=guide_legend(title="Plasmid contigs"),
+         color=guide_legend(title='Sampling location', override.aes = list(size=3), ncol=4))
+
+
+Lake_plasm_plot=ggplot(counts_plasm_L, aes(x=geographic.location..depth., y=conjugation_status, size = count, color=group)) +
+  geom_point(alpha=0.8, shape=16, stroke=0.5, position =position_dodge(.5), show.legend = T)+
+  theme_linedraw(base_size = 10) +
+  coord_flip()+
+  scale_x_reverse(breaks = int_breaks)+
+  scale_y_discrete(labels = label_wrap_gen(18))+
+  facet_nested_wrap(~environment..feature., scales = "free_y", nrow = 1, ncol = 3, labeller = as_labeller(freshw_label))+
+  labs(x = "Depth (m)", title = "Freshwater environments") +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        legend.key.size = unit(0.5, 'cm'),
+        legend.spacing = unit(0.01, 'cm'),
+        strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
+        panel.grid = element_line(color='#f2f2f2'),
+        axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) +
+  scale_size_continuous(range = c(1,10), breaks=c(1,10,100, 1000, 10000), limits = size_legend_plasm)+
+  scale_color_viridis_d(drop=FALSE, option = "turbo", breaks=legend_stress, "Sampling location")+
+  guides(size=guide_legend(title="Plasmid contigs"),
+         color=guide_legend(title='Sampling location', override.aes = list(size=3), ncol=2))
+
+
+blankplot=ggplot() + theme_void()
+upper_plot=ggarrange(Lake_plasm_plot, blankplot, common.legend = F, ncol = 2, widths = c(0.97, 0.03), align = "hv")
+ggarrange(upper_plot, Marine_plasm_plot, ncol = 1, common.legend = F, align = "hv")
+
+ggsave("Plasmid_Depth.png", dpi=600,  width = 11, height = 11, bg='white', device = ragg::agg_png)
 
 ###### FastANI ######
 ocean_ani = read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Ocean/final_analysis/fastani_results/fastani_summary.csv", header = T)
@@ -1976,7 +2026,7 @@ ani_M=ggplot(ocean_ani_d, aes(x=value, y=100-ANI, color = Sample, fill=Sample))+
         plot.margin = margin(9,1,5.5,1, unit = "pt"),
         axis.title.y = element_blank())+
   xlab('Distance between water layers (m)')+ylab("MAG divergence (%)")+
-  labs(tag=expression(bold(b)), subtitle = expression(bold("Marine environments")))+
+  labs(subtitle = expression(bold("Marine environments")))+
   guides(fill=guide_legend(ncol=3, title="Sample location", by.row=T, override.aes = list(size=2)), color='none')
 
 ani_L=ggplot(lake_ani_d, aes(x=value, y=100-ANI, color = Sample, fill=Sample))+
@@ -1991,7 +2041,7 @@ ani_L=ggplot(lake_ani_d, aes(x=value, y=100-ANI, color = Sample, fill=Sample))+
   theme(panel.grid = element_line(color='#f2f2f2'),
         plot.margin = margin(9,1,5.5,1, unit = "pt"))+
   xlab('Distance between water layers (m)')+ylab("MAG divergence (%)")+
-  labs(tag=expression(bold(a)), subtitle = expression(bold("Freshwater environments")))+
+  labs(subtitle = expression(bold("Freshwater environments")))+
   guides(fill=guide_legend(ncol=3, title="Sample location", by.row=T, override.aes = list(size=2)), color='none')
 
 ggarrange(ani_L, ani_M, ncol = 2, common.legend = T, widths = c(0.5, 0.5), legend = "right", align = "hv")
