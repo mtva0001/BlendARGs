@@ -1159,6 +1159,90 @@ ggarrange(upper_plot, Marine_ARG_plot, ncol = 1, common.legend = F, heights = c(
 ggsave("allARGs_Depth.pdf", dpi=600, width = 12, height = 13, bg='white', device = cairo_pdf)
 
 
+#Arg counts along the water column
+counts_arg_M <- Marine_ARG %>%
+  group_by(Env, Depth, Method) %>%
+  summarise(count = n_distinct(ARG)) %>%
+  ungroup()
+
+counts_arg_L <- Lakes_ARG %>%
+  group_by(Env, Depth, Method) %>%
+  summarise(count = n_distinct(ARG)) %>%
+  ungroup()
+
+size_legend_argcount=range(c(counts_arg_L$count, counts_arg_M$count))
+
+Marine_argcount_plot=ggplot(counts_arg_M, aes(x=Depth, y = count, shape=Method)) +
+  geom_point(size=3, alpha=0.8, position = position_jitter(.5), show.legend = T)+
+  theme_linedraw(base_size = 10) +
+  coord_flip()+
+  scale_x_reverse(breaks = int_breaks)+
+  scale_y_continuous(breaks = int_breaks)+
+  facet_nested_wrap(~Env, scales = "free_y", nrow = 3, ncol = 2,
+                    nest_line = element_line(colour="white", linetype = "dotted", linewidth = 0.5))+
+  labs(x = "Depth (m)", y= "# unique ARGs", title = "Marine environments") +
+  theme(legend.position = "right",
+        legend.key.size = unit(0.5, 'cm'),
+        legend.spacing = unit(0.01, 'cm'),
+        strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
+        panel.grid = element_line(color='#f2f2f2')) +
+  guides(shape=guide_legend(title="ARG db"), override.aes = list(size=3), ncol=1)
+
+
+Lake_argcount_plot=ggplot(counts_arg_L, aes(x=Depth, y = count, shape=Method)) +
+  geom_point(size=3, alpha=0.8, position = position_jitter(.5), show.legend = T)+
+  theme_linedraw(base_size = 10) +
+  coord_flip()+
+  scale_x_reverse(breaks = int_breaks)+
+  scale_y_continuous(breaks = int_breaks)+
+  facet_nested_wrap(~Env, scales = "free_y", nrow = 3, ncol = 2,
+                    nest_line = element_line(colour="white", linetype = "dotted", linewidth = 0.5))+
+  labs(x = "Depth (m)", y= "# unique ARGs", title = "Freshwater environments") +
+  theme(legend.key.size = unit(0.5, 'cm'),
+        legend.spacing = unit(0.01, 'cm'),
+        strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
+        panel.grid = element_line(color='#f2f2f2')) +
+  guides(shape=guide_legend(title="ARG db"), override.aes = list(size=3), ncol=1)
+
+
+ggarrange(Lake_argcount_plot, Marine_argcount_plot, ncol = 1, common.legend = T, align = "hv", 
+          heights = c(1.25, 0.75), legend = "right")
+
+ggsave("ARGcounts_Depth.pdf", dpi=600,  width = 6, height = 7, bg='white')
+
+#Pearson correlation between unique ARG counts and depth
+cor_results_M <- counts_arg_M %>%
+  group_by(Env, Method) %>%
+  filter(n() >= 3, n_distinct(Depth) > 1, n_distinct(count) > 1) %>%
+  summarise({
+    test <- cor.test(Depth, count, method = "spearman", exact = FALSE)
+    tibble(
+      estimate = unname(test$estimate),
+      p.value  = test$p.value,
+      conf.low = test$conf.int[1],
+      conf.high = test$conf.int[2]
+    )
+  }, .groups = "drop")
+
+cor_results_M
+
+cor_results_L <- counts_arg_L %>%
+  group_by(Env, Method) %>%
+  filter(n() >= 3, n_distinct(Depth) > 1, n_distinct(count) > 1) %>%
+  summarise({
+    test <- cor.test(count, Depth, method = "spearman", exact = FALSE)
+    tibble(
+      estimate = unname(test$estimate),
+      p.value  = test$p.value,
+      conf.low = test$conf.int[1],
+      conf.high = test$conf.int[2]
+    )
+  }, .groups = "drop")
+
+
+cor_results_L
+
+
 ### This is just to append the list of ARGs with the proper gene names
 ### Load the input files again before running this script below:
 Marine_ARG_c <- Marine_ARG %>% mutate(ARG = as.character(ARG))
@@ -2127,3 +2211,4 @@ hgt_ani_M_plot=ggplot(hgt_ani_M, aes(y=100-ANI, x=HGT, color = Sample))+
 
 ggarrange(hgt_ani_L_plot, hgt_ani_M_plot, ncol = 2, common.legend = T, widths = c(0.5, 0.5), legend = "right", align = "hv")
 quartz.save("ANI_HGT.pdf", type="pdf", dpi=800, width = 11, height = 6, bg='white')
+
