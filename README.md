@@ -19,4 +19,3 @@ Publicly available metagenomic data (Freshwater: [Buck et al. 2021](https://www.
 
 
 
-The results of the project are presented in our preprint: ....
