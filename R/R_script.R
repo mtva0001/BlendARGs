@@ -1886,8 +1886,8 @@ vir_mge_L_typ$Type <- tolower(vir_mge_L_typ$Type)
 
 virmge_L=ggplot(vir_mge_L_typ, aes(x=Phylum, y=length/1000, color=Group, shape=Class.x))+
   geom_point(position = position_dodge(0.5), size=4, stroke=1.5,  show.legend = TRUE)+
-  scale_color_viridis_d(drop=FALSE, option = "turbo", breaks=legend_group, name="Sample location")+
-  scale_shape_manual(drop=FALSE, breaks = legend_class, values=0:8, limits=legend_class, "Drug class")+
+  scale_color_manual(drop=T, breaks=legend_group, values=c("Erken"="#f6c03a", "KT"="#fd8f28", "LJ"="#fc8323", "Ki3"="#fda431"), name="Sample location")+
+  scale_shape_manual(drop=T, breaks = legend_class, values=0:8, "Drug class")+
   facet_grid2(vars(Type), vars(Phatype), render_empty = FALSE)+
   scale_x_discrete(labels = label_wrap_gen(10))+
   theme_linedraw(12)+
