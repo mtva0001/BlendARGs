@@ -1,5 +1,5 @@
 # BlendARGs project - R scripts
-# 16/10/2024
+# 15/12/2025
 
 #Load packages
 library(readxl)
@@ -19,6 +19,7 @@ library(ggforce)
 library(stringr)
 library(rstatix)
 library(gsw)
+library(purrr)
 
 ##### World map #####
 # Marine data
@@ -63,7 +64,7 @@ hgt_tableM$lat <- latitude
 hgt_tableM$long <- longitude
 
 # Freshwater data
-meta=read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/meta_lakes.csv")
+meta=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/meta_lakes.csv")
 hgts=read.table("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/HGT_summary.txt", header = T)
 sum(hgts$HGT_count)
 gene_counts=read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/gene_counts.csv")
@@ -176,6 +177,27 @@ wilcox_effect <- wilcox_effsize(merged_HGT, HGT_activity ~ Source)
 wilcox_test
 wilcox_effect
 
+p1 <- ggplot(merged_HGT, aes(x = Source, y = HGT_activity)) +
+  geom_violin(trim = FALSE, alpha = 0.3) +
+  scale_shape_manual(name = "Environment",
+                     values = c("Freshwater" = 16, "Marine" = 15)) +
+  geom_boxplot(width = 0.2, outlier.shape = NA) +
+  geom_jitter(aes(shape=Source), width = 0.1, alpha = 0.8) +
+  theme_linedraw(12) +theme(panel.grid = element_blank())+
+  labs(title = "",
+       y = "HGT activity", x="")
+p1
+p2 <- ggplot(hgt_table, aes(x = environment..feature., y = HGT_activity)) +
+  geom_violin(trim = FALSE, alpha = 0.3) +
+  geom_boxplot(width = 0.2, outlier.shape = NA) +
+  geom_jitter(width = 0.1, alpha = 0.8) +
+  theme_linedraw(12) +theme(panel.grid = element_blank())+
+  labs(title = "",
+       y = "HGT activity", x="")
+p2
+ggsave("HGT_distribution.pdf", dpi = 600, width = 5, height = 4)
+ggsave("HGT_distribution_Freshw.pdf", dpi = 600, width = 5, height = 4)
+
 #within freshwater sites:
 wilcox_test <- wilcox_test(hgt_table, HGT_activity ~ environment..feature.)
 wilcox_effect <- wilcox_effsize(hgt_table, HGT_activity ~ environment..feature.)
@@ -183,12 +205,48 @@ wilcox_test
 wilcox_effect
 
 
+#Metric stability
+head(merged_HGT)
+# Function to rarefy HGT activity for one sample
+rarefy_sample <- function(gene_count, hgt_unique, steps = 20) {
+  
+  # Create vector of ORFs: 1 = HGT, 0 = non-HGT
+  orf_vec <- c(rep(1, hgt_unique), rep(0, gene_count - hgt_unique))
+  
+  sizes <- round(seq(100, gene_count, length.out = steps))
+  
+  rarefied <- map_dbl(sizes, ~ {
+    sampled <- sample(orf_vec, size = .x, replace = FALSE)
+    mean(sampled)  # proportion of HGT genes
+  })
+  
+  tibble(
+    Subsample = sizes,
+    HGT_activity_rarefied = rarefied
+  )
+}
+
+rarefaction_results <- merged_HGT %>%
+  rowwise() %>%
+  mutate(
+    curve = list(
+      rarefy_sample(GeneCount, HGT_genes_unique, steps = 20)
+    )
+  ) %>%
+  unnest(curve)
+
+ggplot(rarefaction_results, aes(x = Subsample, y = HGT_activity_rarefied, color = Sample)) +
+  geom_line() +
+  theme_linedraw(12) +
+  labs(title = "Rarefaction of HGT Activity",
+    x = "Number of ORFs subsampled",
+    y = "Rarefied HGT activity")
 
 
 
 ##### Stratification check #####
 #### Marine 
-hydrodata=read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Ocean/stratificationcheck/merged_hydrodata.csv") #data collected from https://geotraces.webodv.awi.de/ 
+hydrodata=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Ocean/stratificationcheck/merged_hydrodata.csv") #data collected from https://geotraces.webodv.awi.de/ 
 head(metaM)
 head(hydrodata)
 
@@ -233,10 +291,10 @@ filtered_hydrodata <- filtered_hydrodata %>%
     Station = as.character(Station)
   ) %>%
   group_by(Cruise, Station) %>%
-  arrange(`Operator.s.Cruise.Name`, .by_group = TRUE) %>%
+  arrange(Operator.s.Cruise.Name, .by_group = TRUE) %>%
   mutate(
     # Number distinct operator names encountered up to current row
-    op_index = match(`Operator.s.Cruise.Name`, unique(`Operator.s.Cruise.Name`)),
+    op_index = match(Operator.s.Cruise.Name, unique(Operator.s.Cruise.Name)),
     # Build group label: base + optional J
     group = paste0(Cruise, "_", Station, ifelse(op_index > 1, "J", ""))
   ) %>%
@@ -339,6 +397,23 @@ hist(metaM$`Depth (m)`)
 median(metaM$`Depth (m)`)
 min(metaM$`Depth (m)`)
 max(metaM$`Depth (m)`)
+
+
+# Stratification in freshwater?
+lake_strat=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/meta.csv")
+lake_strat_filtered <- lake_strat %>%
+  group_by(Lake_code) %>%
+  filter(n() > 2) %>%   # keep only Lake_codes with more than one row
+  ungroup()
+
+ggplot(lake_strat_filtered, aes(x = oxygen, 
+                                y = geographic.location..depth., 
+                                colour = Lake_code)) +
+  geom_point(size=3) +
+  scale_y_reverse(breaks = int_breaks) +
+  theme_linedraw(base_size = 12) +
+  facet_wrap(Lake_code ~ environment..feature., scales = "free")
+  
 
 ##### Taxonomic composition #####
 tax_lake = read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/gtdbtk_summary_metachip.tsv", sep = "\t")
@@ -475,6 +550,18 @@ lakes_tax_meta_depth$Class <- fct_relevel(lakes_tax_meta_depth$Class, "unclassif
 marine_tax_meta_depth$Phylum <- fct_relevel(marine_tax_meta_depth$Phylum, "unclassified Bacteria", after = Inf)
 marine_tax_meta_depth$Class <- fct_relevel(marine_tax_meta_depth$Class, "unclassified", after = Inf)
 
+#Now for Phylum
+all_Phylum <- sort(unique(c(
+  levels(lakes_tax_meta_depth$Phylum),
+  levels(marine_tax_meta_depth$Phylum)
+)))
+
+all_Phylum <- c(setdiff(all_Phylum, "unclassified Bacteria"), "unclassified Bacteria")
+
+all_phylum_colors <- viridis::viridis(length(all_Phylum), option = "turbo", end = 0.9)
+names(all_phylum_colors) <- all_Phylum
+all_phylum_colors["unclassified Bacteria"] <- "black"
+####
 
 set.seed(123)
 Lakes_tax_plot=ggplot(lakes_tax_meta_depth, aes(x = geographic.location..depth., y=Phylum , size = Depth, fill=Class, color=Class)) +
@@ -659,21 +746,21 @@ hgtf_m_tax = merge(hgtf_m, marine_tax_meta_depth, by.x="tax_bin", by.y="bin")
 
 hgtf_l_tax=hgtf_l_tax[,-11]
 counts_df_l <- hgtf_l_tax %>%
-  group_by(Category_code, environment..feature..x, geographic.location..depth..x, DorR, Phylum, Class) %>%
+  group_by(Category_code, environment..feature..x, geographic.location..depth..x, DorR, Phylum) %>%
   summarise(count = n()) %>%
   ungroup()
 
 hgtf_m_tax=hgtf_m_tax[,-20]
 counts_df_m <- hgtf_m_tax %>%
-  group_by(Category_code, geo_loc_name.x, `Depth (m).x`, DorR, Phylum, Class) %>%
+  group_by(Category_code, geo_loc_name.x, `Depth (m).x`, DorR, Phylum) %>%
   summarise(count = n()) %>%
   ungroup()
 
 
 gene_label=c(donor='HGT donor', recipient="HGT recipient")
 
-colnames(counts_df_l)=c("Category", "Env", "Depth", "DorR", "Phylum", "Class", "count")
-colnames(counts_df_m)=c("Category", "Env", "Depth", "DorR", "Phylum", "Class", "count")
+colnames(counts_df_l)=c("Category", "Env", "Depth", "DorR", "Phylum", "count")
+colnames(counts_df_m)=c("Category", "Env", "Depth", "DorR", "Phylum", "count")
 
 counts_df_l <- counts_df_l[counts_df_l$Category != "" & !is.na(counts_df_l$Category), ]
 counts_df_m <- counts_df_m[counts_df_m$Category != "" & !is.na(counts_df_m$Category), ]
@@ -698,12 +785,57 @@ counts_df_m$Class <- factor(counts_df_m$Class, levels = all_classes)
 counts_df_l$Class <- fct_relevel(counts_df_l$Class, "unclassified", after = Inf)
 counts_df_m$Class <- fct_relevel(counts_df_m$Class, "unclassified", after = Inf)
 
+#New coloring for plots
+counts_df_l$Phylum <- factor(counts_df_l$Phylum, levels = all_Phylum)
+counts_df_m$Phylum <- factor(counts_df_m$Phylum, levels = all_Phylum)
+
+category_map <- list(
+  "Information storage & processing" = c("J", "A", "K", "L"),
+  "Cellular processes & signaling"   = c("D", "V", "T", "M", "N", "Z", "W", "U", "O"),
+  "Metabolism"                       = c("C", "G", "E", "F", "H", "I", "P", "Q"),
+  "Poorly characterized"             = c("R", "S", "X"))
 
 
+counts_df_l <- counts_df_l %>%
+  mutate(
+    Category_group = case_when(
+      Category %in% category_map[["Information storage & processing"]] ~
+        "Information storage & processing",
+      Category %in% category_map[["Cellular processes & signaling"]] ~
+        "Cellular processes & signaling",
+      Category %in% category_map[["Metabolism"]] ~
+        "Metabolism",
+      Category %in% category_map[["Poorly characterized"]] ~
+        "Poorly characterized",
+      TRUE ~ "Other"))
 
-hgtf_depth_l=ggplot(counts_df_l, aes(x = Depth, y=Category , size = count, fill=Class, colour = Class)) +
+
+counts_df_m <- counts_df_m %>%
+  mutate(
+    Category_group = case_when(
+      Category %in% category_map[["Information storage & processing"]] ~
+        "Information storage & processing",
+      Category %in% category_map[["Cellular processes & signaling"]] ~
+        "Cellular processes & signaling",
+      Category %in% category_map[["Metabolism"]] ~
+        "Metabolism",
+      Category %in% category_map[["Poorly characterized"]] ~
+        "Poorly characterized",
+      TRUE ~ "Other"))
+
+category_group_levels <- c(
+  "Information storage & processing",
+  "Cellular processes & signaling",
+  "Metabolism",
+  "Poorly characterized")
+
+counts_df_l$Category_group <- factor(counts_df_l$Category_group, levels = category_group_levels)
+counts_df_m$Category_group <- factor(counts_df_m$Category_group, levels = category_group_levels)
+
+
+hgtf_depth_l=ggplot(counts_df_l, aes(x = Depth, y=Category_group, size = count, fill=Phylum, colour = Phylum)) +
   geom_point(data = transform(counts_df_l, DorR = NULL), colour = "#cccccc") +
-  geom_point(alpha=0.8, shape=21, stroke=0.5, position =position_dodge(.5), show.legend = T)+
+  geom_point(alpha=0.8, shape=21, stroke=0.5, position =position_dodge(1), show.legend = T)+
   theme_linedraw(base_size = 12) +
   coord_flip()+
   scale_x_reverse(breaks = int_breaks)+
@@ -719,15 +851,15 @@ hgtf_depth_l=ggplot(counts_df_l, aes(x = Depth, y=Category , size = count, fill=
         strip.text = element_text(face="bold", size=12, margin = margin(3,0,3,0)),
         panel.grid = element_line(color='#f2f2f2'),
         plot.margin = margin(1,1,1,12, unit = "pt"))+
-  scale_size(range = c(1,10), breaks = c(1, 5, 10), limits = size_legend_hgt)+
-  scale_fill_manual(values = all_class_colors, drop=F) +  
-  scale_colour_manual(values = all_class_colors, drop=F) +
-  guides(size=guide_legend(title="# HGT-mediated\ngenes"), colour='none',
-         fill=guide_legend(title='Class', override.aes = list(size=4), ncol=3))
+  scale_size(range = c(1,6), breaks = c(1, 5, 10), limits = size_legend_hgt)+
+  scale_fill_manual(values = all_phylum_colors, drop=F) +  
+  scale_colour_manual(values = all_phylum_colors, drop=F) +
+  guides(size=guide_legend(title="# HGT-mediated genes"), colour='none',
+         fill=guide_legend(title='Phylum', override.aes = list(size=4), ncol=2))
 
-hgtf_depth_m=ggplot(counts_df_m, aes(x = Depth, y=Category , size = count, fill=Class, colour=Class)) +
+hgtf_depth_m=ggplot(counts_df_m, aes(x = Depth, y=Category_group, size = count, fill=Phylum, colour=Phylum)) +
   geom_point(data = transform(counts_df_m, DorR = NULL), colour = "#cccccc") +
-  geom_point(alpha=0.8, shape=21, stroke=0.5, position =position_dodge(.5), show.legend = T)+
+  geom_point(alpha=0.8, shape=21, stroke=0.5, position =position_dodge(1), show.legend = T)+
   theme_linedraw(base_size = 12) +
   coord_flip()+
   facet_nested_wrap(DorR~Env, scales = "free_y", nrow = 2, ncol = 2, labeller = labeller(DorR=gene_label),
@@ -738,26 +870,26 @@ hgtf_depth_m=ggplot(counts_df_m, aes(x = Depth, y=Category , size = count, fill=
   theme(legend.position = "right",
         plot.title = element_text(face="bold"),
         axis.title.x = element_blank(),
-        legend.key.spacing = unit(0, 'cm'),
+        legend.key.spacing = unit(0.1, 'cm'),
         legend.spacing = unit(0.01, 'cm'),
         legend.key.size = unit(0.5, 'cm'),
         strip.text = element_text(face="bold", size=12, margin = margin(3,0,3,0)),
         panel.grid = element_line(color='#f2f2f2'))+
-  scale_size(range = c(1,10), breaks = c(1, 5, 10), limits = size_legend_hgt)+
-  scale_fill_manual(values = all_class_colors, drop=F) + 
-  scale_colour_manual(values = all_class_colors, drop=F) +
-  guides(size=guide_legend(title="# HGT-mediated\ngenes", order = 1), colour='none',
-         fill=guide_legend(title='Class', override.aes = list(size=3), ncol=4))
+  scale_size(range = c(1,6), breaks = c(1, 5, 10), limits = size_legend_hgt)+
+  scale_fill_manual(values = all_phylum_colors, drop=F) + 
+  scale_colour_manual(values = all_phylum_colors, drop=F) +
+  guides(size=guide_legend(title="# HGT-mediated genes", order = 1), colour='none',
+         fill=guide_legend(title='Phylum', override.aes = list(size=4), ncol=2))
 
 
 blankplot=ggplot() + theme_void()
 upper_plot=ggarrange(hgtf_depth_l, blankplot, common.legend = F, ncol = 2, widths = c(0.8, 0.2), align = "v")
-bottom_plot=ggarrange(hgtf_depth_m)
+bottom_plot=ggarrange(hgtf_depth_m, blankplot, widths = c(0.77,0.23))
 ggarrange(upper_plot, bottom_plot, ncol = 1, common.legend = F, heights = c(0.495, 0.505), legend = "right")
 
-ggsave("HGT_function_Depth.pdf", dpi=600, width = 15, height = 14, bg='white', device = cairo_pdf)
+ggsave("HGT_function_Depth.pdf", dpi=600, width = 15, height = 14, bg='white')
 
-write.csv(rbind(counts_df_l, counts_df_m),"/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/Figure2.csv")
+write.csv(rbind(counts_df_l, counts_df_m),"/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/Figure2.csv")
 
 
 
@@ -911,11 +1043,12 @@ combined_median_distances <- bind_rows(
 combined_median_distances$group.y=factor(combined_median_distances$group.y, levels = legend_stress)
 
 hgt_depth_link=ggplot(combined_median_distances, aes(x = median_distance, y=HGT_activity , colour=group.y, fill=group.y, shape=Source)) +
+  geom_smooth(aes(group=Source), color="black", method="lm", se=TRUE)+
   geom_point(alpha=0.6, stroke=0.5, show.legend = T, size=5)+
   theme_linedraw(base_size = 12) +
   #scale_x_reverse(breaks = int_breaks)+
   #scale_y_discrete(labels = label_wrap_gen(35))+
-  labs(x = "Median distance (m)", y="HGT activity (%)") +
+  labs(x = "Median depth interval (m)", y="HGT activity (%)") +
   theme(legend.justification.inside = c(0.9,0.9),
         legend.location = "plot",
         legend.spacing = unit(0.01, 'cm'),
@@ -927,15 +1060,22 @@ hgt_depth_link=ggplot(combined_median_distances, aes(x = median_distance, y=HGT_
   guides(colour="none", fill="none", shape=guide_legend(title = "", position = "inside"))
 
 hgt_depth_link
-quartz.save("Link_HGT_Depth.pdf", type="pdf", dpi=600, width = 5, height = 5, bg='white')
 
+ancova_model_int <- lm(HGT_activity ~ Source * median_distance, data = combined_median_distances)
+summary(ancova_model_int)
+
+
+cor_test_all <- cor.test(combined_median_distances$median_distance,
+                         combined_median_distances$HGT_activity,
+                         method = "spearman") 
+quartz.save("Link_HGT_Depth.pdf", type="pdf", dpi=600, width = 5, height = 5, bg='white')
 write.csv(combined_median_distances,"/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/Figure_linkHGT_Depth.csv")
 
 
 ##### Resistome across depth #####
 ### Lakes ###
 #RGI
-rgi_lakes_all=read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/summary_RGI_allbins_ARG.csv")
+rgi_lakes_all=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/summary_RGI_allbins_ARG.csv")
 rgi_lakes_all <- rgi_lakes_all %>%
   mutate(group = sub("_.*", "", ORF_ID))
 
@@ -950,7 +1090,7 @@ rgi_lakes_all <- rgi_lakes_all %>%
 
 #rf_lakes_all=merge(rf_lakes_all, RF_code, by.x='AB', by.y='code')
 #write.csv(rf_lakes_all, "/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/BLAST_allbins_RF_ann.csv")
-rf_lakes_all=read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/BLAST_allbins_RF_ann.csv")
+rf_lakes_all=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/BLAST_allbins_RF_ann.csv")
 
 rf_lakes_all <- rf_lakes_all %>%
   mutate(group = sub("_.*", "", query))
@@ -968,7 +1108,7 @@ rf_lakes_all <- rf_lakes_all %>%
 
 #latent_lakes_all=merge(latent_lakes_all, latent_db, by.x='target', by.y='Variant')
 #write.csv(latent_lakes_all, "/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/BLAST_allbins_latent_ann.csv")
-latent_lakes_all=read.csv("/Users/matev/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/BLAST_allbins_latent_ann.csv")
+latent_lakes_all=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/BLAST_allbins_latent_ann.csv")
 
 latent_lakes_all <- latent_lakes_all %>%
   mutate(group = sub("_.*", "", query))
@@ -985,14 +1125,14 @@ rf_lakes_all <- rf_lakes_all %>%
 latent_lakes_all <- latent_lakes_all %>%
   separate_rows(Class.1, sep = ", ")
 
+rgi_lakes_all= merge(rgi_lakes_all, lakes_tax_meta_depth, by.x=c("tax_bin","geographic.location..depth."), by.y=c("bin", "geographic.location..depth."))
+#rgi_lakes_all=rgi_lakes_all[,c("ORF_ID", "tax_bin", "Drug.Class", "Method", "ID")]
 
-rgi_lakes_all=rgi_lakes_all[,c("ORF_ID", "tax_bin", "Drug.Class", "Method", "ID")]
-rgi_lakes_all= merge(rgi_lakes_all, lakes_tax_meta_depth, by.x="tax_bin", by.y="bin")
-rf_lakes_all= merge(rf_lakes_all, lakes_tax_meta_depth, by.x="tax_bin", by.y="bin")
-latent_lakes_all= merge(latent_lakes_all, lakes_tax_meta_depth, by.x="tax_bin", by.y="bin")
+rf_lakes_all= merge(rf_lakes_all, lakes_tax_meta_depth, by.x=c("tax_bin","geographic.location..depth."), by.y=c("bin", "geographic.location..depth."))
+latent_lakes_all= merge(latent_lakes_all, lakes_tax_meta_depth, by.x=c("tax_bin","geographic.location..depth."), by.y=c("bin", "geographic.location..depth."))
 
-
-rgi_lakes_all=rgi_lakes_all[,c("ORF_ID", "Drug.Class", "environment..feature.", "geographic.location..depth.", 
+names(rgi_lakes_all) <- make.unique(names(rgi_lakes_all))
+rgi_lakes_all=rgi_lakes_all[,c("ORF_ID", "Drug.Class", "environment..feature..x", "geographic.location..depth.", 
                                "Method", "Phylum", "Class", "ID", "Depth")]
 
 rf_lakes_all=rf_lakes_all[,c("query", "Class.x", "environment..feature..x", "geographic.location..depth..x", 
@@ -1091,6 +1231,8 @@ Marine_ARG$Class <- factor(Marine_ARG$Class, levels = all_classes)
 Marine_ARG$Class <- fct_relevel(Marine_ARG$Class, "unclassified", after = Inf)
 Lakes_ARG$Class <- fct_relevel(Lakes_ARG$Class, "unclassified", after = Inf)
 
+Lakes_ARG$Phylum <- factor(Lakes_ARG$Phylum, levels = all_Phylum)
+Marine_ARG$Phylum <- factor(Marine_ARG$Phylum, levels = all_Phylum)
 
 size_legend=range(c(Lakes_ARG$Bin_depth, Marine_ARG$Bin_depth))
 
@@ -1098,12 +1240,71 @@ Lakes_ARG$Method=factor(Lakes_ARG$Method, levels = c("CARD", "ResFinderFG2.0", "
 Marine_ARG$Method=factor(Marine_ARG$Method, levels = c("CARD", "ResFinderFG2.0", "Latent ARGs"))
 
 
+
+
+Lakes_ARG_summary <- Lakes_ARG %>%
+  # For each ARG in a given Depth x Method x Env, keep only one Bin_depth
+  group_by(ARG, Depth, Method, Env, Phylum) %>%
+  summarise(Bin_depth_unique = max(Bin_depth), .groups = "drop") %>%
+  # Now bring back Drug_Class (from original df)
+  left_join(
+    Lakes_ARG %>% select(ARG, Depth, Method, Env, Drug_Class) %>% distinct(),
+    by = c("ARG", "Depth", "Method", "Env")
+  ) %>%
+  # Finally, summarise by Phylum x Depth x Drug_Class
+  group_by(Phylum, Depth, Drug_Class, Env, Method) %>%
+  summarise(
+    n_ARGs = n_distinct(ARG),
+    Bin_depth_sum = sum(Bin_depth_unique),
+    .groups = "drop")
+
+
+Marine_ARG_summary <- Marine_ARG %>%
+  # For each ARG in a given Depth x Method x Env, keep only one Bin_depth
+  group_by(ARG, Depth, Method, Env, Phylum) %>%
+  summarise(Bin_depth_unique = max(Bin_depth), .groups = "drop") %>%
+  # Now bring back Drug_Class (from original df)
+  left_join(
+    Marine_ARG %>% select(ARG, Depth, Method, Env, Drug_Class) %>% distinct(),
+    by = c("ARG", "Depth", "Method", "Env")
+  ) %>%
+  # Finally, summarise by Phylum x Depth x Drug_Class
+  group_by(Phylum, Depth, Drug_Class, Env, Method) %>%
+  summarise(
+    n_ARGs = n_distinct(ARG),
+    Bin_depth_sum = sum(Bin_depth_unique),
+    .groups = "drop")
+
+
+
+combined_ARG <- bind_rows(Lakes_ARG_summary, Marine_ARG_summary)
+drug_counts <- combined_ARG %>%
+  group_by(Drug_Class) %>%
+  summarise(n_ARGs = sum(n_ARGs), .groups = "drop") %>%  # sum across depths/phylum
+  arrange(desc(n_ARGs))
+top10_drugs <- drug_counts %>%
+  slice_head(n = 10) %>%
+  pull(Drug_Class)
+
+Lakes_ARG_summary$Drug_Class <- factor(Lakes_ARG_summary$Drug_Class, levels = top10_drugs)
+Marine_ARG_summary$Drug_Class <- factor(Marine_ARG_summary$Drug_Class, levels = top10_drugs)
+
+Lakes_ARG_summary$Drug_Class <- as.character(Lakes_ARG_summary$Drug_Class)
+Marine_ARG_summary$Drug_Class <- as.character(Marine_ARG_summary$Drug_Class)
+Lakes_ARG_summary$Drug_Class[is.na(Lakes_ARG_summary$Drug_Class)] <- "other classes"
+Marine_ARG_summary$Drug_Class[is.na(Marine_ARG_summary$Drug_Class)] <- "other classes"
+
+Lakes_ARG_summary$Drug_Class <- fct_relevel(Lakes_ARG_summary$Drug_Class, "other classes", after=Inf)
+Marine_ARG_summary$Drug_Class <- fct_relevel(Marine_ARG_summary$Drug_Class, "other classes", after=Inf)
+
+size_legend=range(c(Lakes_ARG_summary$Bin_depth_sum, Marine_ARG_summary$Bin_depth_sum))
 set.seed(123)
 
-Lakes_ARG_plot=ggplot(Lakes_ARG, aes(x = Depth, y=Drug_Class, size = Bin_depth, fill=Class, colour = Class)) +
-  geom_point(data = transform(Lakes_ARG, Method = NULL), colour = "#cccccc", position =position_dodge(.5)) +
-  geom_point(alpha=0.6, shape=21, stroke=0.5, position = position_dodge(.5), show.legend = T)+
-  theme_linedraw(base_size = 10) +
+
+Lakes_ARG_plot=ggplot(Lakes_ARG_summary, aes(x = Depth, y=Drug_Class, size = Bin_depth_sum, fill=Phylum, colour = Phylum)) +
+  geom_point(data = transform(Lakes_ARG_summary, Method = NULL), colour = "#cccccc", position =position_dodge(1)) +
+  geom_point(alpha=0.6, shape=21, stroke=0.5, position = position_dodge(1), show.legend = T)+
+  theme_linedraw(base_size = 12) +
   coord_flip()+
   scale_x_reverse(breaks = int_breaks)+
   scale_y_discrete(labels = label_wrap_gen(25))+
@@ -1118,17 +1319,18 @@ Lakes_ARG_plot=ggplot(Lakes_ARG, aes(x = Depth, y=Drug_Class, size = Bin_depth, 
         panel.grid = element_line(color='#f2f2f2'),
         plot.margin = margin(1,1,1,10, unit = "pt"),
         axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) +
-  scale_fill_manual(values = all_class_colors, drop=F) +  
-  scale_colour_manual(values = all_class_colors, drop=F) +  
-  scale_size_continuous(range=c(1,10), breaks=c(1,10,100,1000, 2000), limits=size_legend)+
+  scale_fill_manual(values = all_phylum_colors, drop=F) +  
+  scale_colour_manual(values = all_phylum_colors, drop=F) +  
+  scale_size_continuous(range=c(1,7), breaks = c(10,1000,5000), limits=size_legend)+
   guides(size=guide_legend(title="Genome bin depth"), colour='none',
-         fill=guide_legend(override.aes = list(size=4), ncol=4, title='Class'))
+         fill=guide_legend(override.aes = list(size=4), ncol=3, title='Phylum'))
 
 
-Marine_ARG_plot=ggplot(Marine_ARG, aes(x = Depth, y=Drug_Class , size = Bin_depth, fill=Class, colour = Class)) +
-  geom_point(data = transform(Marine_ARG, Method = NULL), colour = "#cccccc", position =position_dodge(.5)) +
-  geom_point(alpha=0.6, shape=21, stroke=0.5, position =position_dodge(.5), show.legend = T)+
-  theme_linedraw(base_size = 10) +
+
+Marine_ARG_plot=ggplot(Marine_ARG_summary, aes(x = Depth, y=Drug_Class , size = Bin_depth_sum, fill=Phylum, colour = Phylum)) +
+  geom_point(data = transform(Marine_ARG_summary, Method = NULL), colour = "#cccccc", position =position_dodge(1)) +
+  geom_point(alpha=0.6, shape=21, stroke=0.5, position =position_dodge(1), show.legend = T)+
+  theme_linedraw(base_size = 12) +
   coord_flip()+
   scale_x_reverse(breaks = int_breaks)+
   scale_y_discrete(labels = label_wrap_gen(25))+
@@ -1137,7 +1339,7 @@ Marine_ARG_plot=ggplot(Marine_ARG, aes(x = Depth, y=Drug_Class , size = Bin_dept
   labs(x = "Depth (m)", title = "Marine environments", tag = expression(bold(b))) +
   theme(legend.position = "right",
         legend.justification = "right",
-        legend.key.spacing = unit(0, 'cm'),
+        legend.key.spacing = unit(0.1, 'cm'),
         plot.title = element_text(face='bold'),
         axis.title.x = element_blank(),
         legend.key.size = unit(0.5, 'cm'),
@@ -1145,19 +1347,89 @@ Marine_ARG_plot=ggplot(Marine_ARG, aes(x = Depth, y=Drug_Class , size = Bin_dept
         strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
         panel.grid = element_line(color='#f2f2f2'),
         axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) +
-  scale_fill_manual(values = all_class_colors, drop=F) +  
-  scale_colour_manual(values = all_class_colors, drop=F) +
-  scale_size_continuous(range=c(1,10), breaks=c(1,10,100,1000, 2000), limits=size_legend)+
+  scale_fill_manual(values = all_phylum_colors, drop=F) +  
+  scale_colour_manual(values = all_phylum_colors, drop=F) +
+  scale_size_continuous(range=c(1,7), breaks = c(10, 1000,5000), limits=size_legend)+
   guides(size=guide_legend(title="Genome bin depth"), colour='none',
-         fill=guide_legend(title='Class', override.aes = list(size=3), ncol=4))
+         fill=guide_legend(title='Phylum', override.aes = list(size=4), ncol=2))
 
 
 blankplot=ggplot() + theme_void()
-upper_plot=ggarrange(Lakes_ARG_plot, blankplot, common.legend = F, ncol = 2, widths = c(0.8, 0.2), align = "v")
-ggarrange(upper_plot, Marine_ARG_plot, ncol = 1, common.legend = F, heights = c(0.495, 0.505), legend = "right")
+upper_plot=ggarrange(Lakes_ARG_plot, blankplot, common.legend = F, ncol = 2, widths = c(0.9, 0.1), align = "v")
+bottom_plot=ggarrange(Marine_ARG_plot, blankplot, widths = c(0.89, 0.11))
+ggarrange(upper_plot, bottom_plot, ncol = 1, common.legend = F, heights = c(0.495, 0.505), legend = "right")
 
-ggsave("allARGs_Depth.pdf", dpi=600, width = 12, height = 13, bg='white', device = cairo_pdf)
+ggsave("allARGs_Depth.pdf", dpi=600, width = 13, height = 16, bg='white')
 
+write.csv(rbind(Lakes_ARG_summary, Marine_ARG_summary), "/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/Figure3.csv")
+
+#Magnetic bacteria check
+tax_lake_mgt = read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/final_analysis/gtdbtk_summary_metachip.tsv", sep = "\t")
+mgt_taxa=read.csv("/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Lakes/MGT_taxa.csv")
+
+tax_lake_mgt <- tax_lake_mgt %>%
+  filter(classification %in% mgt_taxa$classification)
+
+Lakes_ARG_mgt <- Lakes_ARG %>%
+  mutate(Bin = sub("_[^_]+$", "", ORF_ID))
+
+Lakes_ARG_mgt <- Lakes_ARG_mgt %>%
+  filter(Bin %in% tax_lake_mgt$user_genome)
+
+
+ggplot(Lakes_ARG, aes(x = Depth, y = Drug_Class)) +
+  #geom_point(aes(size = Bin_depth), colour = "#cccccc", alpha = 0.3, position = position_dodge(.5)) +
+  geom_point(data = Lakes_ARG_mgt, aes(size = Bin_depth, fill = Class, colour = Class, shape=Bin),
+             stroke = 0.5, alpha = 0.8, position = position_dodge(.5)) +
+  theme_linedraw(base_size = 10) +
+  coord_flip()+
+  scale_x_reverse(breaks = int_breaks)+
+  scale_y_discrete(labels = label_wrap_gen(25))+
+  facet_nested_wrap(Method~Env, scales = "free_y", nrow = 3, ncol = 3,
+                    nest_line = element_line(colour="white", linetype = "dotted", linewidth = 0.5))+
+  labs(x = "Depth (m)", title = "Freshwater environments", tag = expression(bold(a))) +
+  theme(legend.position = "right",
+        plot.title = element_text(face='bold'),
+        axis.title.x = element_blank(),
+        legend.key.size = unit(0.5, 'cm'),
+        strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
+        panel.grid = element_line(color='#f2f2f2'),
+        plot.margin = margin(1,1,1,10, unit = "pt"),
+        axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) +
+  scale_fill_manual(values = all_class_colors, drop=F) +  
+  scale_colour_manual(values = all_class_colors, drop=F) +
+  scale_size_continuous(range=c(1,10), breaks=c(1,10,100,1000, 2000), limits=size_legend)+
+  scale_shape_manual(values = 0:18)+
+  guides(size=guide_legend(title="Genome bin depth"),
+         fill=guide_legend(override.aes = list(size=4), ncol=4, title='Class'),
+         shape=guide_legend(ncol = 3))
+
+ggplot(Lakes_ARG_mgt, aes(x = Depth, y = Drug_Class, colour = Class, fill=Class, shape=Bin)) +
+  geom_point(aes(size = Bin_depth, fill = Class, colour = Class, shape=Bin),
+             stroke = 0.5, alpha = 0.8, position = position_jitter(width = 0)) +
+  theme_linedraw(base_size = 10) +
+  coord_flip()+
+  scale_x_reverse(breaks = int_breaks)+
+  scale_y_discrete(labels = label_wrap_gen(25))+
+  facet_nested_wrap(Method~Bin, scales = "fixed",
+                    nest_line = element_line(colour="white", linetype = "dotted", linewidth = 0.5))+
+  labs(x = "Depth (m)", title = "Freshwater environments", tag = expression(bold(a))) +
+  theme(legend.position = "right",
+        plot.title = element_text(face='bold'),
+        axis.title.x = element_blank(),
+        legend.key.size = unit(0.5, 'cm'),
+        strip.text = element_text(face="bold", size=10, margin = margin(3,0,3,0)),
+        panel.grid = element_line(color='#f2f2f2'),
+        plot.margin = margin(1,1,1,10, unit = "pt"),
+        axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) +
+  scale_fill_viridis(discrete = T, option = "magma", begin = 0.2, end = 0.8) +  
+  scale_colour_viridis(discrete = T, option = "magma", begin = 0.2, end = 0.8) +
+  scale_size_continuous(range=c(1,20), breaks=c(1,10,100,1000, 2000), limits=size_legend)+
+  scale_shape_manual(values = 0:18)+
+  guides(size=guide_legend(title="Genome bin depth"),
+         fill=guide_legend(override.aes = list(size=4), ncol=4, title='Class'),
+         shape=guide_legend(ncol = 3))
+#### check end
 
 #Arg counts along the water column
 counts_arg_M <- Marine_ARG %>%
@@ -1348,7 +1620,7 @@ drug_distribution_M
 
 #taxonomic groups harboring ARGs
 taxonomic_dist_L <- Lakes_ARG %>%
-  group_by(Env, Phylum, Class) %>%
+  group_by(Env, Phylum) %>%
   summarise(n_unique_ARGs = n_distinct(ARG), .groups = "drop") %>%
   arrange(Env, desc(n_unique_ARGs))
 
@@ -1677,6 +1949,34 @@ onetooneplot <- ggarrange(blankplot, mge_L, blankplot, mge_M,  ncol = 1, common.
 
 onetooneplot
 
+write.csv(rbind(blastp_L_ARG[,-12], blastp_M_ARG), "/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Manuscript/Revision/sourcedata/11plot.csv")
+
+
+#testing deviation from 1:1 line
+M_ARG_deviation <- blastp_M_ARG %>%
+  mutate(delta_depth = Depth_query - Depth_target)
+
+M_ARG_deviation %>%
+  group_by(Source) %>%
+  summarise(
+    n = n(),
+    mean_shift = mean(delta_depth),
+    median_shift = median(delta_depth),
+    sd = sd(delta_depth),
+    p_value = wilcox.test(delta_depth, mu = 0)$p.value)
+
+L_ARG_deviation <- blastp_L_ARG %>%
+  mutate(delta_depth = Depth_query - Depth_target)
+
+L_ARG_deviation %>%
+  group_by(Source) %>%
+  summarise(
+    n = n(),
+    mean_shift = mean(delta_depth),
+    median_shift = median(delta_depth),
+    sd = sd(delta_depth),
+    p_value = wilcox.test(delta_depth, mu = 0)$p.value)
+
 
 #ARG/site
 blastp_M_ARG_ss$Class=factor(blastp_M_ARG_ss$Class, levels = legend_class)
@@ -1716,7 +2016,7 @@ mge_sum_M=ggplot(summary_marg_M, aes(x=Source, shape=Class, color = Group))+
 #sourcedata
 summary_marg_M$Sample_location = "Marine"
 summary_marg_L$Sample_location = "Freshwater"
-write.csv(rbind(summary_marg_M, summary_marg_L), "/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/MGE_ARG.csv")
+write.csv(rbind(summary_marg_M, summary_marg_L), "/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Manuscript/Revision/sourcedata/MGE_ARG.csv")
 
 #Proportion of mobilizable ARGs in relation to MAG-ARG richness (unique instances!)
 length(unique(blastp_M_ARG$ID)) # 5 mobile ARGs
@@ -1724,8 +2024,6 @@ length(unique(blastp_L_ARG$ID)) # 9 mobile ARGs
 
 length(unique(compiled_m$ID)) # 39 ARGs
 length(unique(compiled_l$ID)) # 144 ARGs
-write.csv(data.frame(unique(compiled_l)), "/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/compiledARGs_L.csv")
-write.csv(data.frame(unique(compiled_m)), "/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/compiledARGs_M.csv")
 
 length(unique(blastp_M_ARG$ID))/length(unique(compiled_m$ID))*100 #12.82%
 length(unique(blastp_L_ARG$ID))/length(unique(compiled_l$ID))*100 #6.25%
@@ -1759,8 +2057,7 @@ marine_pie_plot <- ggplot(marine_pie, aes(ymax=ymax, ymin=ymin, xmax=5, xmin=3, 
 
 lake_pie <- data.frame(
   category=c("Mobilised ARGs", "Non-mobilised ARGs"),
-  count=c(9, 135)
-)
+  count=c(9, 135))
 
 total <- 144   # all unique ARGs
 lake_pie$fraction <- lake_pie$count / total
@@ -1884,6 +2181,8 @@ vir_mge_L_typ$Phatype=factor(vir_mge_L_typ$Phatype, levels = c("temperate", "vir
 vir_mge_L_typ$Type <- tolower(vir_mge_L_typ$Type)
 
 
+
+
 virmge_L=ggplot(vir_mge_L_typ, aes(x=Phylum, y=length/1000, color=Group, shape=Class.x))+
   geom_point(position = position_dodge(0.5), size=4, stroke=1.5,  show.legend = TRUE)+
   scale_color_manual(drop=T, breaks=legend_group, values=c("Erken"="#f6c03a", "KT"="#fd8f28", "LJ"="#fc8323", "Ki3"="#fda431"), name="Sample location")+
@@ -1902,11 +2201,9 @@ virmge_L=ggplot(vir_mge_L_typ, aes(x=Phylum, y=length/1000, color=Group, shape=C
 
 virmge_L
 
+ggsave("MGE_virus_tax.pdf", dpi=600, width = 6, height = 5, bg='white')
 
-
-ggsave("MGE_virus_tax.pdf", dpi=600, width = 8, height = 6, bg='white', device = cairo_pdf)
-
-write.csv(vir_mge_L_typ, "/Users/matev/Documents/Research/Chalmers/BlendARGs/Manuscript/Figures/source_data/phage_MGE_ARG.csv")
+write.csv(vir_mge_L_typ, "/Users/mevs0003/Documents/Research/Chalmers/BlendARGs/Manuscript/Revision/sourcedata/phage_MGE_ARG.csv")
 
 
 ###### Plasmid distributions ######
@@ -2211,4 +2508,7 @@ hgt_ani_M_plot=ggplot(hgt_ani_M, aes(y=100-ANI, x=HGT, color = Sample))+
 
 ggarrange(hgt_ani_L_plot, hgt_ani_M_plot, ncol = 2, common.legend = T, widths = c(0.5, 0.5), legend = "right", align = "hv")
 quartz.save("ANI_HGT.pdf", type="pdf", dpi=800, width = 11, height = 6, bg='white')
+
+
+
 
