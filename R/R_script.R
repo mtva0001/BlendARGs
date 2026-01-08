@@ -834,7 +834,7 @@ counts_df_m$Category_group <- factor(counts_df_m$Category_group, levels = catego
 
 
 hgtf_depth_l=ggplot(counts_df_l, aes(x = Depth, y=Category_group, size = count, fill=Phylum, colour = Phylum)) +
-  geom_point(data = transform(counts_df_l, DorR = NULL), colour = "#cccccc") +
+  geom_point(data = transform(counts_df_l, DorR = NULL), colour = "#cccccc", position =position_dodge(1)) +
   geom_point(alpha=0.8, shape=21, stroke=0.5, position =position_dodge(1), show.legend = T)+
   theme_linedraw(base_size = 12) +
   coord_flip()+
@@ -858,7 +858,7 @@ hgtf_depth_l=ggplot(counts_df_l, aes(x = Depth, y=Category_group, size = count, 
          fill=guide_legend(title='Phylum', override.aes = list(size=4), ncol=2))
 
 hgtf_depth_m=ggplot(counts_df_m, aes(x = Depth, y=Category_group, size = count, fill=Phylum, colour=Phylum)) +
-  geom_point(data = transform(counts_df_m, DorR = NULL), colour = "#cccccc") +
+  geom_point(data = transform(counts_df_m, DorR = NULL), colour = "#cccccc", position =position_dodge(1)) +
   geom_point(alpha=0.8, shape=21, stroke=0.5, position =position_dodge(1), show.legend = T)+
   theme_linedraw(base_size = 12) +
   coord_flip()+
